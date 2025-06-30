@@ -1,3 +1,6 @@
+對不對
+
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -253,7 +256,7 @@
     }
   }
 
-  // ✅ 重要：補上 sortOrder
+  // 確保所有學生都有 sortOrder 欄位，沒有的就補上，避免亂序
   async function ensureSortOrder() {
     const snapshot = await db.collection("students").get();
     let counter = 1;
@@ -268,7 +271,7 @@
     if (counter > 1) await batch.commit();
   }
 
-  // ✅ 改：依 sortOrder 排序
+  // 讀取學生，並依 sortOrder 升冪排序
   async function loadStudents() {
     await ensureSortOrder();
     const snapshot = await db.collection("students").orderBy("sortOrder", "asc").get();
@@ -293,14 +296,14 @@
     });
   }
 
-  // ✅ 改：新增學生時加 sortOrder
+  // 新增學生，並給予最大 sortOrder + 1
   async function addStudent() {
     const name = studentInput.value.trim();
     if (!name) {
       alert("請輸入學生姓名");
       return;
     }
-    if (students.find(s=>s.name===name)) {
+    if (students.find(s => s.name === name)) {
       alert("學生已存在");
       return;
     }
@@ -313,7 +316,6 @@
       studentInput.value = "";
       return;
     }
-
     const maxOrder = students.reduce((max, s) => Math.max(max, s.sortOrder || 0), 0);
     await db.collection("students").add({
       name,
@@ -363,7 +365,7 @@
         await db.collection("records").doc(doc.id).set(data);
       }
     }
-    students = students.filter(s=>s.id!==studentId);
+    students = students.filter(s => s.id !== studentId);
     renderTable();
   }
 
@@ -472,6 +474,44 @@
   clearBtn.onclick = clearAll;
   exitBtn.onclick = exitAdmin;
 
+  // --------- 拖曳排序功能 ---------
+  // 載入 Sortable.js CDN，記得你的 HTML <head> 裡加：
+  // <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+  const oldRenderTable = renderTable;
+  renderTable = async function () {
+    await oldRenderTable();
+    enableDragSort(); // 每次渲染後啟用拖曳
+  };
+
+  function enableDragSort() {
+    const tbody = document.getElementById("tableBody");
+    // 防止重複綁定，先移除所有舊實例 (簡單作法：用 cloneNode 換掉 tbody)
+    const newTbody = tbody.cloneNode(true);
+    tbody.parentNode.replaceChild(newTbody, tbody);
+
+    new Sortable(newTbody, {
+      animation: 150,
+      handle: 'td',
+      onEnd: async function () {
+        // 根據拖曳後的順序重新設置 sortOrder
+        const newOrder = [...newTbody.children].map((tr, index) => {
+          const name = tr.querySelector("td").textContent.split(". ")[1];
+          const student = students.find(s => s.name === name);
+          return { id: student.id, sortOrder: index + 1 };
+        });
+        const batch = db.batch();
+        newOrder.forEach(s => {
+          const ref = db.collection("students").doc(s.id);
+          batch.update(ref, { sortOrder: s.sortOrder });
+        });
+        await batch.commit();
+        await loadStudents();
+        renderTable();
+      }
+    });
+  }
+
   async function init() {
     initYearOptions();
     initMonthOptions();
@@ -482,42 +522,8 @@
   }
 
   init();
-
-<!-- 拖曳排序補丁 -->
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-<script>
-// ✅ 加入拖曳功能：讓學生表格可以拖動排序
-function enableDragSort() {
-  const tbody = document.getElementById("tableBody");
-  new Sortable(tbody, {
-    animation: 150,
-    handle: 'td', // 整列可拖
-    onEnd: async function () {
-      const newOrder = [...tbody.children].map((tr, index) => {
-        const idText = tr.querySelector("td").textContent;
-        const name = idText.split(". ")[1];
-        const student = students.find(s => s.name === name);
-        return { id: student.id, sortOrder: index + 1 };
-      });
-      const batch = db.batch();
-      newOrder.forEach(s => {
-        const ref = db.collection("students").doc(s.id);
-        batch.update(ref, { sortOrder: s.sortOrder });
-      });
-      await batch.commit();
-      await loadStudents();
-      renderTable();
-    }
-  });
-}
-
-// ✅ 在 renderTable 最後加上這一行
-const oldRenderTable = renderTable;
-renderTable = async function() {
-  await oldRenderTable();
-  enableDragSort(); // 重新綁定拖曳
-};
 </script>
-  
+
+
 </body>
 </html>
