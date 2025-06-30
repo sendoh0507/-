@@ -12,8 +12,6 @@ body {
   font-family: 'cwTeXYen', 'Noto Serif TC', serif;
   padding: 10px;
   margin: 0;
-  background: url('https://i.imgur.com/VRgkFwB.jpg') no-repeat center center fixed;
-  background-size: cover;
   background-color: #f8f8f8;
   color: #333;
 }
@@ -26,20 +24,25 @@ h2 {
 select, input, button {
   font-size: 16px;
   margin: 4px;
-  padding: 8px 16px;
+  padding: 10px 18px;
   border-radius: 12px;
   border: none;
 }
 button {
-  background-color: #f0f0f0;
+  background-color: #1e88e5;
+  color: white;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.1s ease;
 }
 button:hover {
-  background-color: #ccc;
+  background-color: #1565c0;
+}
+button:active {
+  transform: scale(0.96);
 }
 .signed {
-  background: #a2e2b8 !important;
+  background: #43a047 !important;
+  color: white;
 }
 .warning {
   color: red;
@@ -47,11 +50,11 @@ button:hover {
   white-space: pre-line;
 }
 .admin-btn {
-  background-color: #f44336;
+  background-color: #e53935;
   color: white;
 }
 .delete-btn {
-  background-color: #f44336;
+  background-color: #e53935;
   color: white;
   font-size: 12px;
 }
@@ -70,7 +73,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
-  background-color: rgba(255,255,255,0.9);
+  background-color: white;
   border-radius: 8px;
   overflow: hidden;
 }
@@ -104,10 +107,6 @@ th, td {
 </head>
 <body>
   <h2>☯️武術課☯️簽到系統🫸🤛</h2>
-  <div style="position: fixed; top: 10px; right: 10px; z-index: 999;">
-    <button onclick="toggleBgm()">🎵 音樂開關</button>
-  </div>
-  <audio id="bgm" src="https://dl.dropboxusercontent.com/scl/fi/fakepath/wuxia.mp3?rlkey=fakekey" preload="auto" loop></audio>
   <div class="top-controls">
     <label for="year">選擇年份：</label>
     <select id="year"></select>
@@ -142,17 +141,7 @@ th, td {
     <button onclick="nextPage()">下一頁</button>
   </div>
   <script>
-    function toggleBgm() {
-      const bgm = document.getElementById("bgm");
-      if (bgm.paused) {
-        bgm.play();
-      } else {
-        bgm.pause();
-      }
-    }
-  </script>
-  <script>
-    // 將你之前的完整 JavaScript 功能邏輯（如 addStudent, renderTable 等）貼回來這裡
+    // JavaScript 功能請補上原本邏輯
   </script>
 </body>
 </html>
