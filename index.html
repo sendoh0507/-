@@ -178,11 +178,9 @@
     measurementId: "G-40QDX4K76X"
   };
 
-  // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  // UI Elements
   const yearSelect = document.getElementById("year");
   const monthSelect = document.getElementById("month");
   const studentInput = document.getElementById("studentName");
@@ -196,7 +194,6 @@
   const nextPageBtn = document.getElementById("nextPageBtn");
   const delCol = document.getElementById("delCol");
 
-  // Pagination & state
   let students = [];
   let records = {};
   let credits = {};
@@ -204,11 +201,9 @@
   const perPage = 50;
   let isAdmin = false;
 
-  // 年月狀態存 localStorage key
   const LS_YEAR_KEY = "lastSelectedYear";
   const LS_MONTH_KEY = "lastSelectedMonth";
 
-  // Year & Month dropdown init with localStorage restore
   function initYearOptions() {
     const now = new Date();
     for(let y = now.getFullYear(); y <= now.getFullYear() + 10; y++) {
@@ -217,10 +212,9 @@
       opt.textContent = `${y} 年`;
       yearSelect.appendChild(opt);
     }
-    // Restore year from localStorage if exists
-    const savedYear = localStorage.getItem(LS_YEAR_KEY);
-    yearSelect.value = savedYear ? savedYear : now.getFullYear();
+    yearSelect.value = localStorage.getItem(LS_YEAR_KEY) || now.getFullYear();
   }
+
   function initMonthOptions() {
     for(let m=1; m<=12; m++) {
       let opt = document.createElement("option");
@@ -228,17 +222,15 @@
       opt.textContent = `${m} 月`;
       monthSelect.appendChild(opt);
     }
-    // Restore month from localStorage if exists
-    const savedMonth = localStorage.getItem(LS_MONTH_KEY);
-    monthSelect.value = savedMonth ? savedMonth : (new Date().getMonth()+1).toString().padStart(2,"0");
+    monthSelect.value = localStorage.getItem(LS_MONTH_KEY) || (new Date().getMonth()+1).toString().padStart(2,"0");
   }
 
-  // Save year & month changes to localStorage and reload records
   yearSelect.addEventListener("change", async () => {
     localStorage.setItem(LS_YEAR_KEY, yearSelect.value);
     await loadRecords();
     renderTable();
   });
+
   monthSelect.addEventListener("change", async () => {
     localStorage.setItem(LS_MONTH_KEY, monthSelect.value);
     await loadRecords();
@@ -261,20 +253,38 @@
     }
   }
 
-  // Load students from Firestore
-  async function loadStudents() {
-    const snapshot = await db.collection("students").orderBy("name").get();
-    students = snapshot.docs.map(doc => ({id: doc.id, name: doc.data().name}));
+  // ✅ 重要：補上 sortOrder
+  async function ensureSortOrder() {
+    const snapshot = await db.collection("students").get();
+    let counter = 1;
+    const batch = db.batch();
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.sortOrder === undefined) {
+        const ref = db.collection("students").doc(doc.id);
+        batch.update(ref, { sortOrder: counter++ });
+      }
+    });
+    if (counter > 1) await batch.commit();
   }
 
-  // Load attendance records for selected year-month
+  // ✅ 改：依 sortOrder 排序
+  async function loadStudents() {
+    await ensureSortOrder();
+    const snapshot = await db.collection("students").orderBy("sortOrder", "asc").get();
+    students = snapshot.docs.map(doc => ({
+      id: doc.id,
+      name: doc.data().name,
+      sortOrder: doc.data().sortOrder || 0
+    }));
+  }
+
   async function loadRecords() {
     const key = getSelectedKey();
     const doc = await db.collection("records").doc(key).get();
     records = doc.exists ? doc.data() : {};
   }
 
-  // Load credits
   async function loadCredits() {
     const snapshot = await db.collection("credits").get();
     credits = {};
@@ -283,7 +293,7 @@
     });
   }
 
-  // Add student
+  // ✅ 改：新增學生時加 sortOrder
   async function addStudent() {
     const name = studentInput.value.trim();
     if (!name) {
@@ -303,14 +313,17 @@
       studentInput.value = "";
       return;
     }
-    // Add to Firestore
-    const docRef = await db.collection("students").add({name});
-    students.push({id: docRef.id, name});
+
+    const maxOrder = students.reduce((max, s) => Math.max(max, s.sortOrder || 0), 0);
+    await db.collection("students").add({
+      name,
+      sortOrder: maxOrder + 1
+    });
     studentInput.value = "";
+    await loadStudents();
     renderTable();
   }
 
-  // Toggle attendance sign
   async function toggleSign(studentId, studentName, week) {
     const key = getSelectedKey();
     if (!records[studentId]) records[studentId] = [false,false,false,false,false];
@@ -319,14 +332,12 @@
     renderTable();
   }
 
-  // Add credit +5
   async function addCredit(studentId) {
     credits[studentId] = (credits[studentId] || 0) + 5;
     await db.collection("credits").doc(studentId).set({value: credits[studentId]});
     renderTable();
   }
 
-  // Get total signed count across all months for studentId
   async function getTotalSigned(studentId) {
     let total = 0;
     const snapshot = await db.collection("records").get();
@@ -339,7 +350,6 @@
     return total;
   }
 
-  // Delete one student
   async function deleteOne(studentId) {
     if (!confirm("確定刪除這位學生？")) return;
     await db.collection("students").doc(studentId).delete();
@@ -357,7 +367,6 @@
     renderTable();
   }
 
-  // Render table data with pagination
   async function renderTable() {
     updateHeaders();
     const totalPage = Math.ceil(students.length / perPage);
@@ -421,7 +430,6 @@
     }
   }
 
-  // Clear all data (only admin)
   async function clearAll() {
     if (!confirm("確定刪除所有學生及資料？")) return;
     const stuSnap = await db.collection("students").get();
@@ -437,7 +445,6 @@
     renderTable();
   }
 
-  // Exit admin mode
   function exitAdmin() {
     isAdmin = false;
     clearBtn.style.display = "none";
@@ -446,13 +453,13 @@
     renderTable();
   }
 
-  // Pagination buttons
   prevPageBtn.onclick = () => {
     if(currentPage > 1) {
       currentPage--;
       renderTable();
     }
   };
+
   nextPageBtn.onclick = () => {
     const totalPage = Math.ceil(students.length / perPage);
     if(currentPage < totalPage) {
@@ -461,12 +468,10 @@
     }
   };
 
-  // Event listeners for others
   addStudentBtn.onclick = addStudent;
   clearBtn.onclick = clearAll;
   exitBtn.onclick = exitAdmin;
 
-  // Initialization
   async function init() {
     initYearOptions();
     initMonthOptions();
@@ -477,70 +482,7 @@
   }
 
   init();
-  
-  // ✅ 🛠 補丁：使用 sortOrder 控制新增順序，不用拖曳也能固定順序
-(async () => {
-  // 🔁 更新舊資料，補上 sortOrder
-  async function ensureSortOrder() {
-    const snapshot = await db.collection("students").get();
-    let counter = 1;
-    const batch = db.batch();
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      if (data.sortOrder === undefined) {
-        const ref = db.collection("students").doc(doc.id);
-        batch.update(ref, { sortOrder: counter++ });
-      }
-    });
-    if (counter > 1) await batch.commit();
-  }
-
-  // 🚀 覆蓋 loadStudents，依 sortOrder 排序
-  window.loadStudents = async function() {
-    await ensureSortOrder();
-    const snapshot = await db.collection("students").orderBy("sortOrder", "asc").get();
-    students = snapshot.docs.map(doc => ({
-      id: doc.id,
-      name: doc.data().name,
-      sortOrder: doc.data().sortOrder || 0
-    }));
-  };
-
-  // ➕ 覆蓋 addStudent，加入 sortOrder
-  window.addStudent = async function() {
-    const name = studentInput.value.trim();
-    if (!name) {
-      alert("請輸入學生姓名");
-      return;
-    }
-    if (students.find(s => s.name === name)) {
-      alert("學生已存在");
-      return;
-    }
-    if (name === "承晨語渝") {
-      isAdmin = true;
-      clearBtn.style.display = "inline-block";
-      exitBtn.style.display = "inline-block";
-      delCol.style.display = "";
-      renderTable();
-      studentInput.value = "";
-      return;
-    }
-
-    // 找出目前最大的 sortOrder
-    const maxOrder = students.reduce((max, s) => Math.max(max, s.sortOrder || 0), 0);
-    await db.collection("students").add({
-      name,
-      sortOrder: maxOrder + 1
-    });
-
-    studentInput.value = "";
-    await loadStudents();
-    renderTable();
-  };
-})();
-
-
 </script>
+
 </body>
 </html>
