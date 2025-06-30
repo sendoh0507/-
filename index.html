@@ -3,21 +3,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>☯️武術課☯️簽到系統🫸🤛</title>
-  <!-- 字體引入 -->
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/earlyaccess/cwtexyen.css');body {
+    @import url('https://fonts.googleapis.com/earlyaccess/cwtexyen.css');* {
+  box-sizing: border-box;
+}
+body {
   font-family: 'cwTeXYen', 'Noto Serif TC', serif;
   padding: 10px;
-  background: url('https://i.imgur.com/OzZ3aVv.png') no-repeat center center fixed;
+  margin: 0;
+  background: url('https://i.imgur.com/VRgkFwB.jpg') no-repeat center center fixed;
   background-size: cover;
-  background-color: #f9f9f9;
+  background-color: #f8f8f8;
   color: #333;
 }
 h2 {
   text-align: center;
   font-size: 32px;
   margin-bottom: 10px;
+  color: #222;
 }
 select, input, button {
   font-size: 16px;
@@ -66,7 +70,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
-  background-color: rgba(255, 255, 255, 0.85);
+  background-color: rgba(255,255,255,0.9);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -85,15 +89,25 @@ th, td {
   margin: 0 5px;
   font-size: 14px;
 }
+@media (max-width: 600px) {
+  select, input, button {
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+  th, td {
+    font-size: 12px;
+    padding: 4px;
+  }
+}
 
   </style>
 </head>
 <body>
   <h2>☯️武術課☯️簽到系統🫸🤛</h2>
-  <audio id="bgm" src="music/wuxia.mp3" autoplay loop controls style="display:none;"></audio>
-  <button onclick="document.getElementById('bgm').muted = !document.getElementById('bgm').muted">
-    🎵 音樂開關
-  </button>
+  <div style="position: fixed; top: 10px; right: 10px; z-index: 999;">
+    <button onclick="toggleBgm()">🎵 音樂開關</button>
+  </div>
+  <audio id="bgm" src="https://dl.dropboxusercontent.com/scl/fi/fakepath/wuxia.mp3?rlkey=fakekey" preload="auto" loop></audio>
   <div class="top-controls">
     <label for="year">選擇年份：</label>
     <select id="year"></select>
@@ -128,8 +142,17 @@ th, td {
     <button onclick="nextPage()">下一頁</button>
   </div>
   <script>
-    // 原本的 JavaScript 程式碼照原樣保留（為節省空間略去）
-    // 請將你原始 JavaScript 程式碼補上於此處，或保留舊的 <script> 區塊
+    function toggleBgm() {
+      const bgm = document.getElementById("bgm");
+      if (bgm.paused) {
+        bgm.play();
+      } else {
+        bgm.pause();
+      }
+    }
+  </script>
+  <script>
+    // 將你之前的完整 JavaScript 功能邏輯（如 addStudent, renderTable 等）貼回來這裡
   </script>
 </body>
 </html>
