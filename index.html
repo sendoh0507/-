@@ -1,27 +1,27 @@
-<!DOCTYPE html><html lang="zh-Hant">
+<!DOCTYPE html>
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>☯️武術課☯️簽到系統🫸🤛</title>
-  <style>
-    body { font-family: "cwTeXYen", sans-serif; padding: 10px; }
-    h2 { text-align: center; font-size: 28px; margin-bottom: 10px; }
-    select, input, button { font-size: 16px; margin: 4px; padding: 6px 12px; border-radius: 8px; }
-    button { background-color: #fcd34d; border: none; cursor: pointer; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ccc; padding: 4px; text-align: center; font-size: 14px; }
-    .signed { background: #b2f2bb; }
-    .warning { color: red; font-weight: bold; white-space: pre-line; }
-    .admin-btn { background-color: #f87171; color: white; }
-    .delete-btn { background-color: #ef4444; color: white; border: none; padding: 4px 8px; cursor: pointer; font-size: 12px; border-radius: 6px; }
-    .top-controls { margin-bottom: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
-    #totalCount { font-weight: bold; margin-left: auto; }
-    .pagination { margin-top: 10px; text-align: center; }
-    .pagination button { padding: 4px 10px; margin: 0 5px; font-size: 14px; border-radius: 6px; }
-  </style>
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>☯️武術課☯️簽到系統🫸🤛</title>
+<style>
+  body { font-family: "cwTeXYen", sans-serif; padding: 10px; }
+  h2 { text-align: center; font-size: 28px; margin-bottom: 10px; }
+  select, input, button { font-size: 16px; margin: 4px; padding: 6px 12px; border-radius: 8px; }
+  button { background-color: #fcd34d; border: none; cursor: pointer; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th, td { border: 1px solid #ccc; padding: 4px; text-align: center; font-size: 14px; }
+  .signed { background: #b2f2bb; }
+  .warning { color: red; font-weight: bold; white-space: pre-line; }
+  .admin-btn { background-color: #f87171; color: white; }
+  .delete-btn { background-color: #ef4444; color: white; border: none; padding: 4px 8px; cursor: pointer; font-size: 12px; border-radius: 6px; }
+  .top-controls { margin-bottom: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+  #totalCount { font-weight: bold; margin-left: auto; }
+  .pagination { margin-top: 10px; text-align: center; }
+  .pagination button { padding: 4px 10px; margin: 0 5px; font-size: 14px; border-radius: 6px; }
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"></script>
 </head>
 <body>
   <h2>☯️武術課☯️簽到系統🫸🤛</h2>
@@ -30,10 +30,10 @@
     <select id="year"></select>
     <label for="month">選擇月份：</label>
     <select id="month"></select>
-    <input type="text" id="studentName" placeholder="新增學生">
-    <button onclick="addStudent()">新增</button>
-    <button id="clearBtn" class="admin-btn" style="display:none;" onclick="clearAll()">全部刪除</button>
-    <button id="exitBtn" class="admin-btn" style="display:none;" onclick="exitAdmin()">離開管理模式</button>
+    <input type="text" id="studentName" placeholder="新增學生" />
+    <button id="addBtn">新增</button>
+    <button id="clearBtn" class="admin-btn" style="display:none;">全部刪除</button>
+    <button id="exitBtn" class="admin-btn" style="display:none;">離開管理模式</button>
     <span id="totalCount"></span>
   </div>
   <table>
@@ -54,245 +54,269 @@
     <tbody id="tableBody"></tbody>
   </table>
   <div class="pagination">
-    <button onclick="prevPage()">上一頁</button>
+    <button id="prevPageBtn">上一頁</button>
     <span id="pageInfo">第 1 / 1 頁</span>
-    <button onclick="nextPage()">下一頁</button>
+    <button id="nextPageBtn">下一頁</button>
   </div>
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyC_LRXmhX4YmMl5Xqeoa8a26vPEFoRU0co",
-      authDomain: "teamwushu-93492.firebaseapp.com",
-      databaseURL: "https://teamwushu-93492-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "teamwushu-93492",
-      storageBucket: "teamwushu-93492.appspot.com",
-      messagingSenderId: "843239603565",
-      appId: "1:843239603565:web:d79d618e03dd260f4cee64"
+    window.addEventListener('error', function(event) {
+      console.error("全域錯誤捕捉:", event.message, "位置:", event.filename + ":" + event.lineno);
+      alert("發生錯誤，請檢查 Console 訊息");
+    });
+
+    window.onload = function() {
+      const firebaseConfig = {
+        apiKey: "AIzaSyC_LRXmhX4YmMl5Xqeoa8a26vPEFoRU0co",
+        authDomain: "teamwushu-93492.firebaseapp.com",
+        databaseURL: "https://teamwushu-93492-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "teamwushu-93492",
+        storageBucket: "teamwushu-93492.appspot.com",
+        messagingSenderId: "843239603565",
+        appId: "1:843239603565:web:d79d618e03dd260f4cee64"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      const yearSelect = document.getElementById("year");
+      const monthSelect = document.getElementById("month");
+      const tableBody = document.getElementById("tableBody");
+      const studentInput = document.getElementById("studentName");
+      const clearBtn = document.getElementById("clearBtn");
+      const exitBtn = document.getElementById("exitBtn");
+      const totalCountEl = document.getElementById("totalCount");
+      const pageInfo = document.getElementById("pageInfo");
+      const addBtn = document.getElementById("addBtn");
+      const prevPageBtn = document.getElementById("prevPageBtn");
+      const nextPageBtn = document.getElementById("nextPageBtn");
+
+      let students = [];
+      let records = {};
+      let creditMap = {};
+      let currentPage = 1;
+      const perPage = 50;
+      let isAdmin = false;
+
+      async function saveAll() {
+        await db.ref("students").set(students);
+        await db.ref("records").set(records);
+        await db.ref("credit").set(creditMap);
+      }
+
+      async function loadAll() {
+        const [sSnap, rSnap, cSnap] = await Promise.all([
+          db.ref("students").get(),
+          db.ref("records").get(),
+          db.ref("credit").get()
+        ]);
+        students = sSnap.exists() ? sSnap.val() : [];
+        records = rSnap.exists() ? rSnap.val() : {};
+        creditMap = cSnap.exists() ? cSnap.val() : {};
+        renderTable();
+      }
+
+      function initYearOptions() {
+        const now = new Date();
+        for (let y = now.getFullYear(); y <= now.getFullYear() + 10; y++) {
+          const opt = document.createElement("option");
+          opt.value = y;
+          opt.text = y + " 年";
+          yearSelect.appendChild(opt);
+        }
+        yearSelect.value = new Date().getFullYear();
+      }
+
+      function initMonthOptions() {
+        for (let i = 1; i <= 12; i++) {
+          const opt = document.createElement("option");
+          opt.value = String(i).padStart(2, "0");
+          opt.text = i + " 月";
+          monthSelect.appendChild(opt);
+        }
+        monthSelect.value = String(new Date().getMonth() + 1).padStart(2, "0");
+      }
+
+      function getSelectedKey() {
+        return yearSelect.value + "-" + monthSelect.value;
+      }
+
+      function updateHeaders() {
+        const date = new Date(getSelectedKey() + "-01");
+        const sundays = [];
+        while (date.getMonth() === new Date(getSelectedKey()).getMonth()) {
+          if (date.getDay() === 0) sundays.push(date.getDate());
+          date.setDate(date.getDate() + 1);
+        }
+        for (let i = 0; i < 5; i++) {
+          document.getElementById("d" + (i + 1)).innerHTML = `第${i + 1}週日<br>${sundays[i] || "-"}`;
+        }
+      }
+
+      window.addStudent = function() {
+        const name = studentInput.value.trim();
+        if (!name) {
+          alert("請輸入學生姓名");
+          return;
+        }
+        if (students.includes(name)) {
+          alert("學生已存在");
+          return;
+        }
+        if (name === "承晨語渝") {
+          isAdmin = true;
+          clearBtn.style.display = "inline-block";
+          exitBtn.style.display = "inline-block";
+          document.getElementById("delCol").style.display = "";
+          studentInput.value = "";
+          renderTable();
+          return;
+        }
+        students.push(name);
+        studentInput.value = "";
+        saveAll();
+        renderTable();
+      };
+
+      window.clearAll = function() {
+        if (!confirm("確定要刪除所有學生資料？")) return;
+        students = [];
+        records = {};
+        creditMap = {};
+        saveAll();
+        location.reload();
+      };
+
+      window.exitAdmin = function() {
+        isAdmin = false;
+        clearBtn.style.display = "none";
+        exitBtn.style.display = "none";
+        document.getElementById("delCol").style.display = "none";
+        renderTable();
+      };
+
+      window.toggleSign = function(name, week) {
+        const key = getSelectedKey();
+        if (!records[key]) records[key] = {};
+        if (!records[key][name]) records[key][name] = [false, false, false, false, false];
+        records[key][name][week] = !records[key][name][week];
+        saveAll();
+        renderTable();
+      };
+
+      window.addCredit = function(name) {
+        creditMap[name] = (creditMap[name] || 0) + 5;
+        saveAll();
+        renderTable();
+      };
+
+      function getTotalSigned(name) {
+        let total = 0;
+        for (const month in records) {
+          if (records[month][name]) {
+            total += records[month][name].filter(v => v).length;
+          }
+        }
+        return total;
+      }
+
+      window.deleteOne = function(name) {
+        if (!confirm("刪除學生：" + name + "？")) return;
+        students = students.filter(n => n !== name);
+        delete creditMap[name];
+        for (const key in records) {
+          delete records[key][name];
+        }
+        saveAll();
+        renderTable();
+      };
+
+      window.prevPage = function() {
+        if (currentPage > 1) {
+          currentPage--;
+          renderTable();
+        }
+      };
+
+      window.nextPage = function() {
+        if (currentPage < Math.ceil(students.length / perPage)) {
+          currentPage++;
+          renderTable();
+        }
+      };
+
+      function renderTable() {
+        updateHeaders();
+        const key = getSelectedKey();
+        const thisMonth = records[key] || {};
+        const totalPage = Math.ceil(students.length / perPage) || 1;
+        if(currentPage > totalPage) currentPage = totalPage;
+        const pageStudents = students.slice((currentPage - 1) * perPage, currentPage * perPage);
+        pageInfo.textContent = `第 ${currentPage} / ${totalPage} 頁`;
+        totalCountEl.textContent = `共 ${students.length} 位學生`;
+        tableBody.innerHTML = "";
+
+        pageStudents.forEach((name, idx) => {
+          const row = document.createElement("tr");
+          const tdName = document.createElement("td");
+          tdName.innerHTML = `${(currentPage - 1) * perPage + idx + 1}. ${name}`;
+          row.appendChild(tdName);
+
+          for (let i = 0; i < 5; i++) {
+            const td = document.createElement("td");
+            const btn = document.createElement("button");
+            const signedIn = thisMonth[name]?.[i];
+            btn.textContent = signedIn ? "✔️" : "簽到";
+            if (signedIn) btn.classList.add("signed");
+            btn.onclick = () => window.toggleSign(name, i);
+            td.appendChild(btn);
+            row.appendChild(td);
+          }
+
+          const tdAdd = document.createElement("td");
+          const addBtn = document.createElement("button");
+          addBtn.textContent = "繳費";
+          addBtn.onclick = () => window.addCredit(name);
+          tdAdd.appendChild(addBtn);
+          row.appendChild(tdAdd);
+
+          const tdRemaining = document.createElement("td");
+          const credit = creditMap[name] || 0;
+          const signed = getTotalSigned(name);
+          const remaining = credit - signed;
+          tdRemaining.innerHTML = remaining <= 1 ? `${remaining}<br>【提醒繳費】` : remaining;
+          if (remaining <= 1) tdRemaining.classList.add("warning");
+          row.appendChild(tdRemaining);
+
+          const tdTotalSigned = document.createElement("td");
+          tdTotalSigned.textContent = signed;
+          row.appendChild(tdTotalSigned);
+
+          const tdDel = document.createElement("td");
+          if (isAdmin) {
+            const delBtn = document.createElement("button");
+            delBtn.textContent = "刪除";
+            delBtn.className = "delete-btn";
+            delBtn.onclick = () => window.deleteOne(name);
+            tdDel.appendChild(delBtn);
+          }
+          tdDel.style.display = isAdmin ? "" : "none";
+          row.appendChild(tdDel);
+
+          tableBody.appendChild(row);
+        });
+      }
+
+      yearSelect.addEventListener("change", renderTable);
+      monthSelect.addEventListener("change", renderTable);
+      addBtn.addEventListener("click", window.addStudent);
+      clearBtn.addEventListener("click", window.clearAll);
+      exitBtn.addEventListener("click", window.exitAdmin);
+      prevPageBtn.addEventListener("click", window.prevPage);
+      nextPageBtn.addEventListener("click", window.nextPage);
+
+      initYearOptions();
+      initMonthOptions();
+      loadAll();
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();const yearSelect = document.getElementById("year");
-const monthSelect = document.getElementById("month");
-const tableBody = document.getElementById("tableBody");
-const studentInput = document.getElementById("studentName");
-const clearBtn = document.getElementById("clearBtn");
-const exitBtn = document.getElementById("exitBtn");
-const totalCountEl = document.getElementById("totalCount");
-const pageInfo = document.getElementById("pageInfo");
-
-let students = [];
-let records = {};
-let creditMap = {};
-let currentPage = 1;
-const perPage = 50;
-let isAdmin = false;
-
-async function saveAll() {
-  await db.ref("students").set(students);
-  await db.ref("records").set(records);
-  await db.ref("credit").set(creditMap);
-}
-
-async function loadAll() {
-  const [sSnap, rSnap, cSnap] = await Promise.all([
-    db.ref("students").get(),
-    db.ref("records").get(),
-    db.ref("credit").get()
-  ]);
-  students = sSnap.exists() ? sSnap.val() : [];
-  records = rSnap.exists() ? rSnap.val() : {};
-  creditMap = cSnap.exists() ? cSnap.val() : {};
-  renderTable();
-}
-
-function initYearOptions() {
-  const now = new Date();
-  for (let y = now.getFullYear(); y <= now.getFullYear() + 10; y++) {
-    const opt = document.createElement("option");
-    opt.value = y;
-    opt.text = y + " 年";
-    yearSelect.appendChild(opt);
-  }
-  yearSelect.value = now.getFullYear();
-}
-
-function initMonthOptions() {
-  const now = new Date();
-  for (let i = 1; i <= 12; i++) {
-    const opt = document.createElement("option");
-    opt.value = String(i).padStart(2, "0");
-    opt.text = i + " 月";
-    monthSelect.appendChild(opt);
-  }
-  monthSelect.value = String(now.getMonth() + 1).padStart(2, "0");
-}
-
-function getSelectedKey() {
-  return yearSelect.value + "-" + monthSelect.value;
-}
-
-function updateHeaders() {
-  const date = new Date(getSelectedKey() + "-01");
-  const sundays = [];
-  while (date.getMonth() === new Date(getSelectedKey()).getMonth()) {
-    if (date.getDay() === 0) sundays.push(date.getDate());
-    date.setDate(date.getDate() + 1);
-  }
-  for (let i = 0; i < 5; i++) {
-    document.getElementById("d" + (i + 1)).innerHTML = `第${i + 1}週日<br>${sundays[i] || "-"}`;
-  }
-}
-
-window.addStudent = function () {
-  const name = studentInput.value.trim();
-  if (!name || students.includes(name)) return;
-  if (name === "承晨語渝") {
-    isAdmin = true;
-    clearBtn.style.display = "inline-block";
-    exitBtn.style.display = "inline-block";
-    document.getElementById("delCol").style.display = "";
-    studentInput.value = "";
-    renderTable();
-    return;
-  }
-  students.push(name);
-  studentInput.value = "";
-  saveAll();
-  renderTable();
-};
-
-window.clearAll = function () {
-  if (!confirm("確定要刪除所有學生資料？")) return;
-  students = [];
-  records = {};
-  creditMap = {};
-  saveAll();
-  location.reload();
-};
-
-window.exitAdmin = function () {
-  isAdmin = false;
-  clearBtn.style.display = "none";
-  exitBtn.style.display = "none";
-  document.getElementById("delCol").style.display = "none";
-  renderTable();
-};
-
-window.toggleSign = function (name, week) {
-  const key = getSelectedKey();
-  if (!records[key]) records[key] = {};
-  if (!records[key][name]) records[key][name] = [false, false, false, false, false];
-  records[key][name][week] = !records[key][name][week];
-  saveAll();
-  renderTable();
-};
-
-window.addCredit = function (name) {
-  creditMap[name] = (creditMap[name] || 0) + 5;
-  saveAll();
-  renderTable();
-};
-
-function getTotalSigned(name) {
-  let total = 0;
-  for (const month in records) {
-    if (records[month][name]) {
-      total += records[month][name].filter(v => v).length;
-    }
-  }
-  return total;
-}
-
-window.deleteOne = function (name) {
-  if (!confirm("刪除學生：" + name + "？")) return;
-  students = students.filter(n => n !== name);
-  delete creditMap[name];
-  for (const key in records) {
-    delete records[key][name];
-  }
-  saveAll();
-  renderTable();
-};
-
-window.prevPage = function () {
-  if (currentPage > 1) {
-    currentPage--;
-    renderTable();
-  }
-};
-
-window.nextPage = function () {
-  if (currentPage < Math.ceil(students.length / perPage)) {
-    currentPage++;
-    renderTable();
-  }
-};
-
-function renderTable() {
-  updateHeaders();
-  const key = getSelectedKey();
-  const thisMonth = records[key] || {};
-  const totalPage = Math.ceil(students.length / perPage);
-  const pageStudents = students.slice((currentPage - 1) * perPage, currentPage * perPage);
-  pageInfo.textContent = `第 ${currentPage} / ${totalPage || 1} 頁`;
-  totalCountEl.textContent = `共 ${students.length} 位學生`;
-  tableBody.innerHTML = "";
-
-  pageStudents.forEach((name, idx) => {
-    const row = document.createElement("tr");
-    const tdName = document.createElement("td");
-    tdName.innerHTML = `${(currentPage - 1) * perPage + idx + 1}. ${name}`;
-    row.appendChild(tdName);
-
-    for (let i = 0; i < 5; i++) {
-      const td = document.createElement("td");
-      const btn = document.createElement("button");
-      const signedIn = thisMonth[name]?.[i];
-      btn.textContent = signedIn ? "✔️" : "簽到";
-      if (signedIn) btn.classList.add("signed");
-      btn.onclick = () => window.toggleSign(name, i);
-      td.appendChild(btn);
-      row.appendChild(td);
-    }
-
-    const tdAdd = document.createElement("td");
-    const addBtn = document.createElement("button");
-    addBtn.textContent = "繳費";
-    addBtn.onclick = () => window.addCredit(name);
-    tdAdd.appendChild(addBtn);
-    row.appendChild(tdAdd);
-
-    const tdRemaining = document.createElement("td");
-    const credit = creditMap[name] || 0;
-    const signed = getTotalSigned(name);
-    const remaining = credit - signed;
-    tdRemaining.innerHTML = remaining <= 1 ? `${remaining}<br>【提醒繳費】` : remaining;
-    if (remaining <= 1) tdRemaining.classList.add("warning");
-    row.appendChild(tdRemaining);
-
-    const tdTotalSigned = document.createElement("td");
-    tdTotalSigned.textContent = signed;
-    row.appendChild(tdTotalSigned);
-
-    const tdDel = document.createElement("td");
-    if (isAdmin) {
-      const delBtn = document.createElement("button");
-      delBtn.textContent = "刪除";
-      delBtn.className = "delete-btn";
-      delBtn.onclick = () => window.deleteOne(name);
-      tdDel.appendChild(delBtn);
-    }
-    tdDel.style.display = isAdmin ? "" : "none";
-    row.appendChild(tdDel);
-
-    tableBody.appendChild(row);
-  });
-}
-
-yearSelect.addEventListener("change", renderTable);
-monthSelect.addEventListener("change", renderTable);
-initYearOptions();
-initMonthOptions();
-loadAll();
-
   </script>
 </body>
 </html>
