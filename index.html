@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>☯️武術課☯️簽到系統🫸🤛</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 10px; }
@@ -19,9 +19,6 @@
     .pagination { margin-top: 10px; text-align: center; }
     .pagination button { padding: 4px 10px; margin: 0 5px; font-size: 14px; }
   </style>
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
 </head>
 <body>
   <h2>☯️武術課☯️簽到系統🫸🤛</h2>
@@ -36,6 +33,7 @@
     <button id="exitBtn" class="admin-btn" style="display:none;">離開管理模式</button>
     <span id="totalCount"></span>
   </div>
+
   <table>
     <thead>
       <tr>
@@ -53,14 +51,19 @@
     </thead>
     <tbody id="tableBody"></tbody>
   </table>
+
   <div class="pagination">
     <button id="prevBtn">上一頁</button>
     <span id="pageInfo">第 1 / 1 頁</span>
     <button id="nextBtn">下一頁</button>
   </div>
 
+  <!-- Firebase 8.x SDK (舊版非 module) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
   <script>
-    // Firebase config - 請替換成你的 Firebase 專案設定
+    // 你的 Firebase 設定，換成你自己的
     const firebaseConfig = {
       apiKey: "AIzaSyC_LRXmhX4YmMl5Xqeoa8a26vPEFoRU0co",
       authDomain: "teamwushu-93492.firebaseapp.com",
@@ -71,33 +74,29 @@
       measurementId: "G-55TNPH0RKS"
     };
 
-    // 初始化 Firebase
-    const app = firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // DOM 物件
+    // 全域變數
+    let students = [];
+    let records = {};
+    let creditMap = {};
+    let currentPage = 1;
+    const perPage = 50;
+    let isAdmin = false;
+
+    // DOM 元素
     const yearSelect = document.getElementById("year");
     const monthSelect = document.getElementById("month");
     const tableBody = document.getElementById("tableBody");
     const studentInput = document.getElementById("studentName");
     const clearBtn = document.getElementById("clearBtn");
     const exitBtn = document.getElementById("exitBtn");
-    const totalCountEl = document.getElementById("totalCount");
     const pageInfo = document.getElementById("pageInfo");
-    const addBtn = document.getElementById("addBtn");
+    const totalCountEl = document.getElementById("totalCount");
     const delCol = document.getElementById("delCol");
-    const prevBtn = document.getElementById("prevBtn");
-    const nextBtn = document.getElementById("nextBtn");
 
-    // 狀態變數
-    let students = [];  // 學生清單（字串陣列）
-    let records = {};   // 簽到資料，key=年月，value={學生名: [bool,bool,bool,bool,bool]}
-    let creditMap = {}; // 繳費補堂資訊，key=學生名，value=堂數
-    let currentPage = 1;
-    const perPage = 50;
-    let isAdmin = false;
-
-    // 初始化年、月下拉選單
+    // 初始化年、月選項
     function initYearOptions() {
       const now = new Date();
       for (let y = now.getFullYear(); y <= now.getFullYear() + 10; y++) {
@@ -106,9 +105,8 @@
         opt.textContent = y + " 年";
         yearSelect.appendChild(opt);
       }
-      yearSelect.value = now.getFullYear();
+      yearSelect.value = new Date().getFullYear();
     }
-
     function initMonthOptions() {
       for (let m = 1; m <= 12; m++) {
         const opt = document.createElement("option");
@@ -116,118 +114,111 @@
         opt.textContent = m + " 月";
         monthSelect.appendChild(opt);
       }
-      const now = new Date();
-      monthSelect.value = String(now.getMonth() + 1).padStart(2, "0");
+      monthSelect.value = String(new Date().getMonth() + 1).padStart(2, "0");
     }
 
-    // 取得目前選擇的年月字串 key，例如 "2025-06"
+    // 取得目前選擇的年月 key
     function getSelectedKey() {
       return yearSelect.value + "-" + monthSelect.value;
     }
 
-    // 更新表頭日期 (五個週日)
+    // 更新表頭週日日期
     function updateHeaders() {
-      const key = getSelectedKey();
-      const [y, m] = key.split("-");
-      const date = new Date(y, parseInt(m) - 1, 1);
+      const baseDate = new Date(getSelectedKey() + "-01");
       const sundays = [];
-      while (date.getMonth() === parseInt(m) - 1) {
-        if (date.getDay() === 0) sundays.push(date.getDate());
-        date.setDate(date.getDate() + 1);
+      const month = baseDate.getMonth();
+      const year = baseDate.getFullYear();
+
+      // 找該月所有週日日期
+      for (let d = 1; d <= 31; d++) {
+        const date = new Date(year, month, d);
+        if (date.getMonth() !== month) break;
+        if (date.getDay() === 0) sundays.push(d);
       }
+
       for (let i = 0; i < 5; i++) {
-        document.getElementById("d" + (i + 1)).innerHTML = `第${i + 1}週日<br>${sundays[i] || "-"}`;
+        const header = document.getElementById("d" + (i + 1));
+        header.innerHTML = `第${i + 1}週日<br>${sundays[i] || "-"}`;
       }
     }
 
-    // 從 Firebase 讀取學生清單
-    async function fetchStudents() {
-      const snapshot = await db.collection("students").get();
-      students = snapshot.docs.map(doc => doc.id);
-    }
+    // 抓取所有資料
+    async function fetchAll() {
+      // 取學生名單
+      const studentsSnapshot = await db.collection("students").get();
+      students = studentsSnapshot.docs.map(doc => doc.id).sort();
 
-    // 從 Firebase 讀取繳費資料
-    async function fetchCredits() {
-      const snapshot = await db.collection("credit").get();
+      // 取補堂繳費資料
+      const creditSnapshot = await db.collection("credit").get();
       creditMap = {};
-      snapshot.forEach(doc => {
+      creditSnapshot.forEach(doc => {
         creditMap[doc.id] = doc.data().count || 0;
       });
-    }
 
-    // 從 Firebase 讀取該年月簽到資料
-    async function fetchRecords() {
+      // 取當月簽到紀錄
       const key = getSelectedKey();
-      const doc = await db.collection("records").doc(key).get();
-      records[key] = doc.exists ? doc.data() : {};
-    }
+      const recordDoc = await db.collection("records").doc(key).get();
+      if (recordDoc.exists) {
+        records[key] = recordDoc.data();
+      } else {
+        records[key] = {};
+      }
 
-    // 全部資料一起抓
-    async function fetchAll() {
-      await Promise.all([fetchStudents(), fetchCredits(), fetchRecords()]);
       renderTable();
     }
 
-    // 新增學生，管理員密碼為 "承晨語渝"
+    // 新增學生
     async function addStudent() {
       const name = studentInput.value.trim();
       if (!name) return alert("請輸入學生姓名");
       if (students.includes(name)) return alert("學生已存在");
+
+      // 進入管理模式
       if (name === "承晨語渝") {
         isAdmin = true;
         clearBtn.style.display = "inline-block";
         exitBtn.style.display = "inline-block";
         delCol.style.display = "";
-        studentInput.value = "";
         renderTable();
+        studentInput.value = "";
         return;
       }
-      await db.collection("students").doc(name).set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+
+      await db.collection("students").doc(name).set({ created: firebase.firestore.FieldValue.serverTimestamp() });
       studentInput.value = "";
-      await fetchStudents();
-      renderTable();
+      fetchAll();
     }
 
     // 切換簽到狀態
     async function toggleSign(name, week) {
       const key = getSelectedKey();
-      if (!records[key]) records[key] = {};
-      if (!records[key][name]) records[key][name] = [false, false, false, false, false];
-      records[key][name][week] = !records[key][name][week];
-      await db.collection("records").doc(key).set(records[key]);
-      await fetchRecords();
-      renderTable();
+      const recordRef = db.collection("records").doc(key);
+      const recordDoc = await recordRef.get();
+      let data = recordDoc.exists ? recordDoc.data() : {};
+      if (!data[name]) data[name] = [false, false, false, false, false];
+      data[name][week] = !data[name][week];
+      await recordRef.set(data);
+      fetchAll();
     }
 
-    // 新增繳費補堂
+    // 新增補堂繳費
     async function addCredit(name) {
-      const current = creditMap[name] || 0;
-      await db.collection("credit").doc(name).set({ count: current + 5 });
-      await fetchCredits();
-      renderTable();
+      const creditRef = db.collection("credit").doc(name);
+      const creditDoc = await creditRef.get();
+      const oldCount = creditDoc.exists ? creditDoc.data().count : 0;
+      await creditRef.set({ count: oldCount + 5 });
+      fetchAll();
     }
 
-    // 計算學生累積簽到堂數（跨月份累加）
-    function getTotalSigned(name) {
-      let total = 0;
-      for (const monthKey in records) {
-        if (records[monthKey][name]) {
-          total += records[monthKey][name].filter(Boolean).length;
-        }
-      }
-      return total;
-    }
-
-    // 刪除單一學生及相關資料
+    // 刪除學生及資料
     async function deleteOne(name) {
-      if (!confirm(`確定刪除學生 ${name} 嗎？`)) return;
-      // 刪學生文件
+      if (!confirm("刪除學生：" + name + "？")) return;
       await db.collection("students").doc(name).delete();
-      // 刪繳費文件
       await db.collection("credit").doc(name).delete();
-      // 刪紀錄中的該學生資料
-      const batch = db.batch();
+
+      // 刪除所有紀錄中該學生的資料
       const recordsSnap = await db.collection("records").get();
+      const batch = db.batch();
       recordsSnap.forEach(doc => {
         const data = doc.data();
         if (data[name]) {
@@ -236,27 +227,22 @@
         }
       });
       await batch.commit();
-      await fetchAll();
+
+      fetchAll();
     }
 
-    // 清空所有學生、繳費、簽到資料 (管理員操作)
-    async function clearAll() {
-      if (!confirm("確定要刪除所有學生資料？")) return;
-      // 刪除所有學生
-      const studentSnap = await db.collection("students").get();
-      const batch = db.batch();
-      studentSnap.forEach(doc => batch.delete(doc.ref));
-      // 刪除所有繳費
-      const creditSnap = await db.collection("credit").get();
-      creditSnap.forEach(doc => batch.delete(doc.ref));
-      // 刪除所有簽到
-      const recordSnap = await db.collection("records").get();
-      recordSnap.forEach(doc => batch.delete(doc.ref));
-      await batch.commit();
-      await fetchAll();
+    // 計算學生累積簽到次數
+    function getTotalSigned(name) {
+      let total = 0;
+      for (const monthKey in records) {
+        if (records[monthKey][name]) {
+          total += records[monthKey][name].filter(v => v).length;
+        }
+      }
+      return total;
     }
 
-    // 分頁上一頁
+    // 頁碼上一頁
     function prevPage() {
       if (currentPage > 1) {
         currentPage--;
@@ -264,7 +250,7 @@
       }
     }
 
-    // 分頁下一頁
+    // 頁碼下一頁
     function nextPage() {
       if (currentPage < Math.ceil(students.length / perPage)) {
         currentPage++;
@@ -272,14 +258,13 @@
       }
     }
 
-    // 渲染表格
+    // 畫表格
     function renderTable() {
       updateHeaders();
       const key = getSelectedKey();
       const thisMonth = records[key] || {};
       const totalPage = Math.ceil(students.length / perPage) || 1;
       if (currentPage > totalPage) currentPage = totalPage;
-
       const pageStudents = students.slice((currentPage - 1) * perPage, currentPage * perPage);
       pageInfo.textContent = `第 ${currentPage} / ${totalPage} 頁`;
       totalCountEl.textContent = `共 ${students.length} 位學生`;
@@ -287,17 +272,14 @@
 
       pageStudents.forEach((name, idx) => {
         const row = document.createElement("tr");
-
-        // 名字編號欄
         const tdName = document.createElement("td");
         tdName.innerHTML = `${(currentPage - 1) * perPage + idx + 1}. ${name}`;
         row.appendChild(tdName);
 
-        // 五週簽到按鈕
         for (let i = 0; i < 5; i++) {
           const td = document.createElement("td");
           const btn = document.createElement("button");
-          const signedIn = thisMonth[name]?.[i] || false;
+          const signedIn = thisMonth[name]?.[i];
           btn.textContent = signedIn ? "✔️" : "簽到";
           if (signedIn) btn.classList.add("signed");
           btn.onclick = () => toggleSign(name, i);
@@ -305,7 +287,6 @@
           row.appendChild(td);
         }
 
-        // 繳費補堂按鈕
         const tdAdd = document.createElement("td");
         const addBtn = document.createElement("button");
         addBtn.textContent = "繳費";
@@ -313,7 +294,6 @@
         tdAdd.appendChild(addBtn);
         row.appendChild(tdAdd);
 
-        // 剩餘堂數計算與顯示
         const tdRemaining = document.createElement("td");
         const credit = creditMap[name] || 0;
         const signed = getTotalSigned(name);
@@ -322,12 +302,10 @@
         if (remaining <= 1) tdRemaining.classList.add("warning");
         row.appendChild(tdRemaining);
 
-        // 累積簽到堂數
         const tdTotalSigned = document.createElement("td");
         tdTotalSigned.textContent = signed;
         row.appendChild(tdTotalSigned);
 
-        // 刪除按鈕(管理員)
         const tdDel = document.createElement("td");
         if (isAdmin) {
           const delBtn = document.createElement("button");
@@ -343,30 +321,46 @@
       });
     }
 
-    // 事件綁定
-    addBtn.onclick = addStudent;
-    prevBtn.onclick = prevPage;
-    nextBtn.onclick = nextPage;
-    yearSelect.onchange = async () => {
-      currentPage = 1;
-      await fetchRecords();
-      renderTable();
-    };
-    monthSelect.onchange = async () => {
-      currentPage = 1;
-      await fetchRecords();
-      renderTable();
-    };
-    clearBtn.onclick = clearAll;
-    exitBtn.onclick = () => {
+    // 清除所有資料 (管理模式)
+    async function clearAll() {
+      if (!confirm("確定要刪除所有學生資料？")) return;
+
+      // 批次刪除 students
+      const studentSnap = await db.collection("students").get();
+      const batch = db.batch();
+      studentSnap.forEach(doc => batch.delete(doc.ref));
+
+      // 批次刪除 credit
+      const creditSnap = await db.collection("credit").get();
+      creditSnap.forEach(doc => batch.delete(doc.ref));
+
+      // 批次刪除 records
+      const recordsSnap = await db.collection("records").get();
+      recordsSnap.forEach(doc => batch.delete(doc.ref));
+
+      await batch.commit();
+      fetchAll();
+    }
+
+    // 離開管理模式
+    function exitAdmin() {
       isAdmin = false;
       clearBtn.style.display = "none";
       exitBtn.style.display = "none";
       delCol.style.display = "none";
       renderTable();
-    };
+    }
 
-    // 初始化流程
+    // 綁定事件
+    yearSelect.addEventListener("change", fetchAll);
+    monthSelect.addEventListener("change", fetchAll);
+    document.getElementById("addBtn").addEventListener("click", addStudent);
+    clearBtn.addEventListener("click", clearAll);
+    exitBtn.addEventListener("click", exitAdmin);
+    document.getElementById("prevBtn").addEventListener("click", prevPage);
+    document.getElementById("nextBtn").addEventListener("click", nextPage);
+
+    // 初始化
     initYearOptions();
     initMonthOptions();
     fetchAll();
