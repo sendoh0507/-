@@ -482,7 +482,41 @@
   }
 
   init();
-</script>
 
+<!-- 拖曳排序補丁 -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+// ✅ 加入拖曳功能：讓學生表格可以拖動排序
+function enableDragSort() {
+  const tbody = document.getElementById("tableBody");
+  new Sortable(tbody, {
+    animation: 150,
+    handle: 'td', // 整列可拖
+    onEnd: async function () {
+      const newOrder = [...tbody.children].map((tr, index) => {
+        const idText = tr.querySelector("td").textContent;
+        const name = idText.split(". ")[1];
+        const student = students.find(s => s.name === name);
+        return { id: student.id, sortOrder: index + 1 };
+      });
+      const batch = db.batch();
+      newOrder.forEach(s => {
+        const ref = db.collection("students").doc(s.id);
+        batch.update(ref, { sortOrder: s.sortOrder });
+      });
+      await batch.commit();
+      await loadStudents();
+      renderTable();
+    }
+  });
+}
+
+// ✅ 在 renderTable 最後加上這一行
+const oldRenderTable = renderTable;
+renderTable = async function() {
+  await oldRenderTable();
+  enableDragSort(); // 重新綁定拖曳
+};
+</script>
 </body>
 </html>
