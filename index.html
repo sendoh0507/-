@@ -477,6 +477,50 @@
   }
 
   init();
+  
+  // 🛠 補丁：覆蓋 loadStudents 與 addStudent，改成依新增時間排序，不用改其他地方
+
+(async () => {
+  // 覆蓋舊的 loadStudents
+  window.loadStudents = async function() {
+    const snapshot = await db.collection("students").orderBy("createdAt", "asc").get();
+    students = snapshot.docs.map(doc => ({
+      id: doc.id,
+      name: doc.data().name,
+      createdAt: doc.data().createdAt ? doc.data().createdAt.toDate() : new Date(0)
+    }));
+  };
+
+  // 覆蓋舊的 addStudent
+  window.addStudent = async function() {
+    const name = studentInput.value.trim();
+    if (!name) {
+      alert("請輸入學生姓名");
+      return;
+    }
+    if (students.find(s => s.name === name)) {
+      alert("學生已存在");
+      return;
+    }
+    if (name === "承晨語渝") {
+      isAdmin = true;
+      clearBtn.style.display = "inline-block";
+      exitBtn.style.display = "inline-block";
+      delCol.style.display = "";
+      renderTable();
+      studentInput.value = "";
+      return;
+    }
+    await db.collection("students").add({
+      name,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    studentInput.value = "";
+    await loadStudents();
+    renderTable();
+  };
+})();
+
 </script>
 </body>
 </html>
