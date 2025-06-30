@@ -261,14 +261,10 @@
     }
   }
 
-  // Load students ordered by sortOrder
+  // Load students from Firestore
   async function loadStudents() {
-    const snapshot = await db.collection("students").orderBy("sortOrder").get();
-    students = snapshot.docs.map(doc => ({
-      id: doc.id,
-      name: doc.data().name,
-      sortOrder: doc.data().sortOrder ?? 0,
-    }));
+    const snapshot = await db.collection("students").orderBy("name").get();
+    students = snapshot.docs.map(doc => ({id: doc.id, name: doc.data().name}));
   }
 
   // Load attendance records for selected year-month
@@ -287,14 +283,14 @@
     });
   }
 
-  // Add student with sortOrder = max + 1
+  // Add student
   async function addStudent() {
     const name = studentInput.value.trim();
     if (!name) {
       alert("請輸入學生姓名");
       return;
     }
-    if (students.find(s => s.name === name)) {
+    if (students.find(s=>s.name===name)) {
       alert("學生已存在");
       return;
     }
@@ -307,21 +303,9 @@
       studentInput.value = "";
       return;
     }
-
-    // 取得最大 sortOrder
-    let maxSortOrder = 0;
-    if (students.length > 0) {
-      maxSortOrder = Math.max(...students.map(s => s.sortOrder || 0));
-    }
-
-    // 新增學生帶入 sortOrder
-    const docRef = await db.collection("students").add({
-      name,
-      sortOrder: maxSortOrder + 1,
-    });
-
-    // 重新載入學生（用 sortOrder 排序）
-    await loadStudents();
+    // Add to Firestore
+    const docRef = await db.collection("students").add({name});
+    students.push({id: docRef.id, name});
     studentInput.value = "";
     renderTable();
   }
@@ -483,13 +467,6 @@
   exitBtn.onclick = exitAdmin;
 
   // Initialization
-  async function init() {
-    initYearOptions();
-    initMonthOptions();
-    await loadStudents();
-    await loadCredits();
-    await loadRecords();
-    renderTable();
   async function init() {
     initYearOptions();
     initMonthOptions();
