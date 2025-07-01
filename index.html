@@ -342,6 +342,10 @@
   const perPage = 50;
   let isAdmin = false;
 
+  // 跨月扣堂用：全紀錄快取及全月簽到累計
+  let allRecords = {};
+  let totalSignedCount = {};
+
   const LS_YEAR_KEY = "lastSelectedYear";
   const LS_MONTH_KEY = "lastSelectedMonth";
 
@@ -371,12 +375,14 @@
   yearSelect.addEventListener("change", async () => {
     localStorage.setItem(LS_YEAR_KEY, yearSelect.value);
     await loadRecords();
+    await loadAllRecords();
     renderTable();
   });
 
   monthSelect.addEventListener("change", async () => {
     localStorage.setItem(LS_MONTH_KEY, monthSelect.value);
     await loadRecords();
+    await loadAllRecords();
     renderTable();
   });
 
@@ -385,16 +391,14 @@
   }
 
   function updateHeaders() {
-    // 計算當月所有週日日期
     const year = parseInt(yearSelect.value);
-    const month = parseInt(monthSelect.value) - 1; // JS month 0-based
+    const month = parseInt(monthSelect.value) - 1;
     const sundays = [];
     let date = new Date(year, month, 1);
     while(date.getMonth() === month) {
       if(date.getDay() === 0) sundays.push(date.getDate());
       date.setDate(date.getDate() + 1);
     }
-    // 更新表頭週數與日期
     for (let i=0; i<5; i++) {
       const dElem = document.getElementById("d"+(i+1));
       const dayNum = sundays[i] || "-";
@@ -448,6 +452,25 @@
     });
   }
 
+  // 新增：載入所有紀錄，計算跨月累計簽到數
+  async function loadAllRecords() {
+    const snapshot = await db.collection("records").get();
+    allRecords = {};
+    snapshot.forEach(doc => {
+      allRecords[doc.id] = doc.data();
+    });
+
+    totalSignedCount = {};
+    for (const recKey in allRecords) {
+      const rec = allRecords[recKey];
+      for (const studentId in rec) {
+        const arr = rec[studentId];
+        if (!totalSignedCount[studentId]) totalSignedCount[studentId] = 0;
+        totalSignedCount[studentId] += arr.filter(v => v === 1).length;
+      }
+    }
+  }
+
   async function addStudent() {
     const name = studentInput.value.trim();
     if (!name) {
@@ -470,6 +493,7 @@
       await loadCredits();
       await loadAdjustments();
       await loadRecords();
+      await loadAllRecords();
       renderTable();
       return;
     }
@@ -483,12 +507,13 @@
     renderTable();
   }
 
-  // 三段簽到狀態循環：0=藍預設, 1=綠已簽到(-1堂), 2=紅請假(不扣堂)
+  // 改寫 toggleSign，切換狀態後，重新載入所有紀錄計算跨月簽到數
   async function toggleSign(studentId, week) {
     const key = getSelectedKey();
     if (!records[studentId]) records[studentId] = [0,0,0,0,0];
     records[studentId][week] = (records[studentId][week] + 1) % 3;
     await db.collection("records").doc(key).set(records);
+    await loadAllRecords();
     renderTable();
   }
 
@@ -504,18 +529,6 @@
     adjustments[studentId] = newVal;
     await db.collection("adjustments").doc(studentId).set({value: newVal});
     renderTable();
-  }
-
-  async function getTotalSigned(studentId) {
-    let total = 0;
-    const snapshot = await db.collection("records").get();
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      if (data[studentId]) {
-        total += data[studentId].filter(v => v === 1).length;
-      }
-    });
-    return total;
   }
 
   async function deleteOne(studentId) {
@@ -580,12 +593,12 @@
       tdCredit.appendChild(payBtn);
       tr.appendChild(tdCredit);
 
-      // 剩餘堂數 = 繳費堂數 + 補堂調整 - 已簽到堂數，兩行顯示
+      // 剩餘堂數 = 繳費堂數 + 補堂調整 - 全月累計簽到堂數，兩行顯示
       const tdRemain = document.createElement("td");
       tdRemain.classList.add("remain-cell");
       const creditVal = credits[s.id] || 0;
       const adjustVal = adjustments[s.id] || 0;
-      const signedCount = (records[s.id] || [0,0,0,0,0]).filter(v => v === 1).length;
+      const signedCount = totalSignedCount[s.id] || 0;  // 全月累計簽到數
       const remain = creditVal + adjustVal - signedCount;
       tdRemain.innerHTML = `剩餘<br>${remain}`;
       if(remain <= 1) tdRemain.classList.add("remain-low");
@@ -594,67 +607,78 @@
       if (isAdmin) {
         // 管理模式補堂調整欄
         const tdAdj = document.createElement("td");
-        // -1 按鈕
         const btnMinus = document.createElement("button");
         btnMinus.classList.add("adjust-btn");
         btnMinus.textContent = "-1";
         btnMinus.title = "補堂 -1";
         btnMinus.addEventListener("click", () => adjustCredit(s.id, -1));
         tdAdj.appendChild(btnMinus);
-        // +1 按鈕
+
         const btnPlus = document.createElement("button");
         btnPlus.classList.add("adjust-btn");
         btnPlus.textContent = "+1";
         btnPlus.title = "補堂 +1";
-        btnPlus.addEventListener("click", () => adjustCredit(s.id, 1));
+        btnPlus.addEventListener("click", () => adjustCredit(s.id, +1));
         tdAdj.appendChild(btnPlus);
+
         tr.appendChild(tdAdj);
 
-        // 刪除按鈕
+        // 刪除欄位
         const tdDel = document.createElement("td");
         const delBtn = document.createElement("button");
-        delBtn.classList.add("admin-btn");
+        delBtn.classList.add("delete-btn");
         delBtn.textContent = "刪除";
-        delBtn.style.padding = "4px 8px";
+        delBtn.title = "刪除學生";
         delBtn.addEventListener("click", () => deleteOne(s.id));
         tdDel.appendChild(delBtn);
         tr.appendChild(tdDel);
-
-        delCol.style.display = "";
-        adjCol.style.display = "";
-        adminControls.style.display = "flex";
-      } else {
-        // 非管理模式補堂調整與刪除欄隱藏並不留空格
-        delCol.style.display = "none";
-        adjCol.style.display = "none";
-        adminControls.style.display = "none";
       }
 
       tableBody.appendChild(tr);
     }
   }
 
+  prevPageBtn.addEventListener("click", () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderTable();
+    }
+  });
+
+  nextPageBtn.addEventListener("click", () => {
+    if (currentPage * perPage < students.length) {
+      currentPage++;
+      renderTable();
+    }
+  });
+
   addStudentBtn.addEventListener("click", addStudent);
-  studentInput.addEventListener("keydown", (e) => { if(e.key === "Enter") addStudent(); });
+  studentInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") addStudent();
+  });
 
   clearBtn.addEventListener("click", async () => {
-    if (!confirm("確定要全部刪除學生資料？此動作不可復原")) return;
-    const batch = db.batch();
-    (await db.collection("students").get()).docs.forEach(doc => batch.delete(doc.ref));
-    (await db.collection("credits").get()).docs.forEach(doc => batch.delete(doc.ref));
-    (await db.collection("adjustments").get()).docs.forEach(doc => batch.delete(doc.ref));
-    (await db.collection("records").get()).docs.forEach(doc => batch.delete(doc.ref));
-    await batch.commit();
+    if (!confirm("確定要全部清空嗎？此動作無法復原！")) return;
+    // 清空所有資料
+    await db.collection("students").get().then(snap => {
+      snap.forEach(doc => db.collection("students").doc(doc.id).delete());
+    });
+    await db.collection("credits").get().then(snap => {
+      snap.forEach(doc => db.collection("credits").doc(doc.id).delete());
+    });
+    await db.collection("adjustments").get().then(snap => {
+      snap.forEach(doc => db.collection("adjustments").doc(doc.id).delete());
+    });
+    await db.collection("records").get().then(snap => {
+      snap.forEach(doc => db.collection("records").doc(doc.id).delete());
+    });
     students = [];
     credits = {};
     adjustments = {};
     records = {};
-    isAdmin = false;
-    clearBtn.style.display = "none";
-    exitBtn.style.display = "none";
-    adminControls.style.display = "none";
-    delCol.style.display = "none";
-    adjCol.style.display = "none";
+    allRecords = {};
+    totalSignedCount = {};
+    currentPage = 1;
     renderTable();
   });
 
@@ -665,20 +689,7 @@
     adminControls.style.display = "none";
     delCol.style.display = "none";
     adjCol.style.display = "none";
-    renderTable();
-  });
-
-  prevPageBtn.addEventListener("click", () => {
-    if (currentPage > 1) {
-      currentPage--;
-      renderTable();
-    }
-  });
-  nextPageBtn.addEventListener("click", () => {
-    if (currentPage * perPage < students.length) {
-      currentPage++;
-      renderTable();
-    }
+    loadStudents().then(() => renderTable());
   });
 
   async function start() {
@@ -688,10 +699,13 @@
     await loadCredits();
     await loadAdjustments();
     await loadRecords();
+    await loadAllRecords();
     renderTable();
   }
 
   start();
+
 </script>
+
 </body>
 </html>
