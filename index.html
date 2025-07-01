@@ -8,27 +8,55 @@
     body {
       font-family: "標楷體", "DFKai-SB", Arial, sans-serif;
       padding: 10px;
-      max-width: 900px;
+      max-width: 420px;
       margin: auto;
       background: linear-gradient(135deg, #f0f8ff, #d0e8ff);
     }
     h2 {
       text-align: center;
-      font-size: 28px;
+      font-size: 24px;
       margin-bottom: 10px;
       color: #204060;
       text-shadow: 1px 1px 2px #aaccee;
     }
+    .top-controls {
+      margin-bottom: 10px;
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 8px;
+      justify-content: flex-start;
+      color: #204060;
+      font-size: 13px;
+      flex-wrap: nowrap;
+      flex-flow: row nowrap;
+      flex-wrap: nowrap;
+      flex-wrap: nowrap;
+      flex-wrap: nowrap;
+      flex-wrap: nowrap;
+      flex-wrap: nowrap;
+      flex-wrap: nowrap;
+      flex-wrap: nowrap;
+      flex-wrap: nowrap;
+      flex-wrap: nowrap;
+    }
+    .top-controls label {
+      white-space: nowrap;
+      user-select: none;
+      margin-right: 2px;
+    }
     select, input, button {
-      font-size: 16px;
-      margin: 4px;
-      padding: 8px 14px;
+      font-size: 13px;
+      margin: 2px;
+      padding: 5px 8px;
       border-radius: 12px;
       border: 1.5px solid #204060;
       outline: none;
       transition: background-color 0.3s ease, color 0.3s ease;
       font-family: "標楷體", "DFKai-SB", Arial, sans-serif;
       cursor: pointer;
+      user-select: none;
+      box-sizing: border-box;
     }
     select:focus, input:focus, button:focus {
       border-color: #4080c0;
@@ -47,24 +75,12 @@
       background-color: #e85050;
       color: white;
       border: none;
-      padding: 8px 14px;
+      padding: 5px 10px;
       border-radius: 12px;
       user-select: none;
+      font-size: 13px;
     }
     .admin-btn:hover {
-      background-color: #b03030;
-    }
-    .delete-btn {
-      background-color: #e85050;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 12px;
-      user-select: none;
-    }
-    .delete-btn:hover {
       background-color: #b03030;
     }
     table {
@@ -75,45 +91,114 @@
       border-radius: 12px;
       overflow: hidden;
       box-shadow: 0 0 10px #aaccee;
+      font-size: 13px;
+      table-layout: fixed;
+      word-break: break-word;
     }
     th, td {
       border: 1px solid #ccc;
-      padding: 10px 6px;
+      padding: 5px 3px;
       text-align: center;
-      font-size: 14px;
       vertical-align: middle;
     }
-    .signed {
-      background: #b2f2bb;
-      font-weight: bold;
+    th {
+      background-color: #d0e8ff;
+      color: #204060;
+      font-weight: 700;
+      line-height: 1.3;
+      user-select: none;
+    }
+    /* 簽到按鈕三段狀態 */
+    .sign-btn {
+      width: 38px;
+      height: 28px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      line-height: 1;
+      user-select: none;
+      padding: 0;
+      border: none;
+      cursor: pointer;
+      color: white;
+      transition: background-color 0.25s ease;
+      outline: none;
+      box-shadow: none;
+    }
+    .sign-default {
+      background-color: #4090ff;
+      box-shadow: none;
+      border: none;
+    }
+    .sign-signed {
+      background-color: #2fa64f;
+      box-shadow: none;
+      border: none;
+    }
+    .sign-leave {
+      background-color: #d94a4a;
+      box-shadow: none;
+      border: none;
+    }
+    /* 綠色簽到按鈕無黑框 */
+    .sign-signed:focus,
+    .sign-signed:active {
+      outline: none;
+      box-shadow: none;
+      border: none;
+    }
+    .adjust-btn {
+      background-color: #40906e;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 3px 8px;
+      margin-left: 3px;
+      cursor: pointer;
+      font-size: 13px;
+      user-select: none;
+      font-weight: 700;
+      line-height: 1;
+      transition: background-color 0.3s ease;
+    }
+    .adjust-btn:hover {
+      background-color: #306048;
+    }
+    .pay-btn {
+      background-color: #3355aa;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 5px 12px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      user-select: none;
+      transition: background-color 0.3s ease;
+      margin-left: 4px;
+    }
+    .pay-btn:hover {
+      background-color: #223377;
     }
     .warning {
       color: red;
       font-weight: bold;
-      white-space: pre-line;
-    }
-    .top-controls {
-      margin-bottom: 10px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 12px;
-      justify-content: center;
-      color: #204060;
+      white-space: nowrap;
     }
     #totalCount {
       font-weight: bold;
-      margin-left: auto;
       color: #204060;
+      margin-left: auto;
+      user-select: none;
     }
     .pagination {
       margin-top: 10px;
       text-align: center;
     }
     .pagination button {
-      padding: 8px 16px;
-      margin: 0 8px;
-      font-size: 14px;
+      padding: 5px 12px;
+      margin: 0 6px;
+      font-size: 13px;
       border-radius: 12px;
       background-color: #4090ff;
       color: white;
@@ -124,21 +209,52 @@
     .pagination button:hover {
       background-color: #3060cc;
     }
-    .adjust-btn {
-      background-color: #40906e;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 3px 8px;
-      margin-left: 4px;
-      cursor: pointer;
-      font-size: 14px;
+    /* 剩餘堂數改兩行顯示 */
+    .remain-cell {
+      white-space: normal !important;
+      font-weight: 700;
       user-select: none;
-      font-weight: bold;
-      line-height: 1;
     }
-    .adjust-btn:hover {
-      background-color: #306048;
+    /* 剩餘堂數 <=1 時紅色 */
+    .remain-low {
+      color: red !important;
+    }
+    /* 手機版調整 */
+    @media (max-width: 600px) {
+      body {
+        padding: 6px;
+        max-width: 100%;
+      }
+      h2 {
+        font-size: 22px;
+      }
+      .top-controls {
+        font-size: 12px;
+        gap: 6px;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+      }
+      select, input, button {
+        font-size: 12px;
+        padding: 5px 7px;
+      }
+      table {
+        font-size: 12px;
+      }
+      .sign-btn {
+        width: 34px;
+        height: 26px;
+        font-size: 11px;
+        padding: 0;
+      }
+      .adjust-btn, .pay-btn {
+        padding: 3px 6px;
+        font-size: 12px;
+        margin-left: 2px;
+      }
+      th, td {
+        padding: 5px 1px;
+      }
     }
   </style>
 
@@ -149,9 +265,9 @@
 <body>
   <h2>☯️武術課簽到系統🫸🤛</h2>
   <div class="top-controls">
-    <label for="year">選擇年份：</label>
+    <label for="year">年分：</label>
     <select id="year"></select>
-    <label for="month">選擇月份：</label>
+    <label for="month">月分：</label>
     <select id="month"></select>
     <input type="text" id="studentName" placeholder="新增學生" />
     <button id="addStudentBtn">新增</button>
@@ -162,15 +278,15 @@
   <table>
     <thead>
       <tr>
-        <th>編號<br>姓名</th>
-        <th id="d1">第一週日<br>-</th>
-        <th id="d2">第二週日<br>-</th>
-        <th id="d3">第三週日<br>-</th>
-        <th id="d4">第四週日<br>-</th>
-        <th id="d5">第五週日<br>-</th>
-        <th>繳費<br>補堂<br><small>(管理+/-調整)</small></th>
-        <th>剩餘<br>堂數</th>
-        <th>累積<br>堂數</th>
+        <th>姓名</th>
+        <th id="d1">第一週<br>-</th>
+        <th id="d2">第二週<br>-</th>
+        <th id="d3">第三週<br>-</th>
+        <th id="d4">第四週<br>-</th>
+        <th id="d5">第五週<br>-</th>
+        <th>繳費</th>
+        <th class="remain-cell">剩餘<br>堂數</th>
+        <th id="adjCol" style="display:none;">補堂調整</th>
         <th id="delCol" style="display:none;">刪除</th>
       </tr>
     </thead>
@@ -209,11 +325,12 @@
   const prevPageBtn = document.getElementById("prevPageBtn");
   const nextPageBtn = document.getElementById("nextPageBtn");
   const delCol = document.getElementById("delCol");
+  const adjCol = document.getElementById("adjCol");
 
   let students = [];
   let records = {};
   let credits = {};
-  let adjustments = {}; // 新增：存放補堂調整
+  let adjustments = {}; // 補堂調整
   let currentPage = 1;
   const perPage = 50;
   let isAdmin = false;
@@ -223,20 +340,22 @@
 
   function initYearOptions() {
     const now = new Date();
+    yearSelect.innerHTML = "";
     for(let y = now.getFullYear(); y <= now.getFullYear() + 10; y++) {
       let opt = document.createElement("option");
       opt.value = y;
-      opt.textContent = `${y} 年`;
+      opt.textContent = `${y}`;
       yearSelect.appendChild(opt);
     }
     yearSelect.value = localStorage.getItem(LS_YEAR_KEY) || now.getFullYear();
   }
 
   function initMonthOptions() {
+    monthSelect.innerHTML = "";
     for(let m=1; m<=12; m++) {
       let opt = document.createElement("option");
       opt.value = m.toString().padStart(2,"0");
-      opt.textContent = `${m} 月`;
+      opt.textContent = `${m}`;
       monthSelect.appendChild(opt);
     }
     monthSelect.value = localStorage.getItem(LS_MONTH_KEY) || (new Date().getMonth()+1).toString().padStart(2,"0");
@@ -259,14 +378,20 @@
   }
 
   function updateHeaders() {
-    const date = new Date(getSelectedKey() + "-01");
+    // 計算當月所有週日日期
+    const year = parseInt(yearSelect.value);
+    const month = parseInt(monthSelect.value) - 1; // JS month 0-based
     const sundays = [];
-    while (date.getMonth() === new Date(getSelectedKey()).getMonth()) {
-      if (date.getDay() === 0) sundays.push(date.getDate());
+    let date = new Date(year, month, 1);
+    while(date.getMonth() === month) {
+      if(date.getDay() === 0) sundays.push(date.getDate());
       date.setDate(date.getDate() + 1);
     }
+    // 更新表頭週數與日期
     for (let i=0; i<5; i++) {
-      document.getElementById("d"+(i+1)).innerHTML = `第${i+1}週日<br>${sundays[i] || "-"}`;
+      const dElem = document.getElementById("d"+(i+1));
+      const dayNum = sundays[i] || "-";
+      dElem.innerHTML = `第${i+1}週<br>${dayNum}`;
     }
   }
 
@@ -308,7 +433,6 @@
     });
   }
 
-  // 新增：讀取補堂調整資料
   async function loadAdjustments() {
     const snapshot = await db.collection("adjustments").get();
     adjustments = {};
@@ -332,11 +456,15 @@
       clearBtn.style.display = "inline-block";
       exitBtn.style.display = "inline-block";
       delCol.style.display = "";
-      renderTable();
+      adjCol.style.display = "";
       studentInput.value = "";
+      await loadStudents();
+      await loadCredits();
+      await loadAdjustments();
+      await loadRecords();
+      renderTable();
       return;
     }
-
     const maxOrder = students.reduce((max, s) => Math.max(max, s.sortOrder || 0), 0);
     await db.collection("students").add({
       name,
@@ -347,10 +475,11 @@
     renderTable();
   }
 
-  async function toggleSign(studentId, studentName, week) {
+  // 三段簽到狀態循環：0=藍預設, 1=綠已簽到(-1堂), 2=紅請假(不扣堂)
+  async function toggleSign(studentId, week) {
     const key = getSelectedKey();
-    if (!records[studentId]) records[studentId] = [false,false,false,false,false];
-    records[studentId][week] = !records[studentId][week];
+    if (!records[studentId]) records[studentId] = [0,0,0,0,0];
+    records[studentId][week] = (records[studentId][week] + 1) % 3;
     await db.collection("records").doc(key).set(records);
     renderTable();
   }
@@ -361,26 +490,22 @@
     renderTable();
   }
 
-  // 新增：調整補堂數 +1 或 -1，存在 adjustments 集合
   async function adjustCredit(studentId, delta) {
     const oldVal = adjustments[studentId] || 0;
     const newVal = oldVal + delta;
-    if (newVal < 0) {
-      alert("調整值不能小於0");
-      return;
-    }
     adjustments[studentId] = newVal;
     await db.collection("adjustments").doc(studentId).set({value: newVal});
     renderTable();
   }
 
   async function getTotalSigned(studentId) {
+    // 計算全部月份已簽到次數(狀態1)
     let total = 0;
     const snapshot = await db.collection("records").get();
     snapshot.forEach(doc => {
       const data = doc.data();
       if (data[studentId]) {
-        total += data[studentId].filter(v => v).length;
+        total += data[studentId].filter(v => v === 1).length;
       }
     });
     return total;
@@ -389,7 +514,6 @@
   async function deleteOne(studentId) {
     if (!confirm("確定刪除這位學生？")) return;
     await db.collection("students").doc(studentId).delete();
-    delete credits[studentId];
     await db.collection("credits").doc(studentId).delete();
     await db.collection("adjustments").doc(studentId).delete();
     const recSnapshot = await db.collection("records").get();
@@ -414,128 +538,146 @@
 
     const pageStudents = students.slice((currentPage-1)*perPage, currentPage*perPage);
 
-    for (const [idx, s] of pageStudents.entries()) {
+    // 預先抓所有學生已簽到數，避免逐行 await
+    const signedCounts = {};
+    await Promise.all(pageStudents.map(async s => {
+      signedCounts[s.id] = await getTotalSigned(s.id);
+    }));
+
+    for (const s of pageStudents) {
       const tr = document.createElement("tr");
+
+      // 姓名
       const tdName = document.createElement("td");
-      tdName.textContent = `${(currentPage-1)*perPage + idx + 1}. ${s.name}`;
+      tdName.textContent = s.name;
       tr.appendChild(tdName);
 
-      for(let i=0; i<5; i++) {
+      // 5週簽到按鈕
+      for(let w=0; w<5; w++) {
         const td = document.createElement("td");
         const btn = document.createElement("button");
-        const signed = records[s.id]?.[i];
-        btn.textContent = signed ? "✔️" : "簽到";
-        if (signed) btn.classList.add("signed");
-        btn.onclick = () => toggleSign(s.id, s.name, i);
+        btn.classList.add("sign-btn");
+        const recKey = records[s.id] || [0,0,0,0,0];
+        let state = recKey[w];
+        if (state === 0) btn.classList.add("sign-default");
+        else if (state === 1) btn.classList.add("sign-signed");
+        else if (state === 2) btn.classList.add("sign-leave");
+
+        btn.textContent = state === 1 ? "✅" : (state === 2 ? "❌" : "簽到");
+        btn.addEventListener("click", () => toggleSign(s.id, w));
         td.appendChild(btn);
         tr.appendChild(td);
       }
 
+      // 繳費按鈕 (文字改為「繳費」)
       const tdCredit = document.createElement("td");
-      // 顯示繳費補堂數字
-      const creditVal = credits[s.id] || 0;
-      tdCredit.textContent = creditVal;
-
-      // 管理模式下顯示 +1 -1 調整按鈕
-      if (isAdmin) {
-        const adjVal = adjustments[s.id] || 0;
-        const adjSpan = document.createElement("span");
-        adjSpan.textContent = ` (調整: ${adjVal})`;
-        tdCredit.appendChild(adjSpan);
-
-        const plusBtn = document.createElement("button");
-        plusBtn.textContent = "+1";
-        plusBtn.className = "adjust-btn";
-        plusBtn.onclick = () => adjustCredit(s.id, +1);
-
-        const minusBtn = document.createElement("button");
-        minusBtn.textContent = "-1";
-        minusBtn.className = "adjust-btn";
-        minusBtn.onclick = () => adjustCredit(s.id, -1);
-
-        tdCredit.appendChild(plusBtn);
-        tdCredit.appendChild(minusBtn);
-      } else {
-        // 非管理模式不顯示調整數值和按鈕
-      }
+      const payBtn = document.createElement("button");
+      payBtn.classList.add("pay-btn");
+      payBtn.textContent = "繳費";
+      payBtn.title = "繳費 +5 堂";
+      payBtn.addEventListener("click", () => addCredit(s.id));
+      tdCredit.appendChild(payBtn);
       tr.appendChild(tdCredit);
 
+      // 剩餘堂數 = 繳費堂數 + 補堂調整 - 已簽到堂數
       const tdRemain = document.createElement("td");
-      const signedCount = await getTotalSigned(s.id);
-
-      // 剩餘堂數 = 繳費補堂 + 調整 - 簽到堂數
-      const remain = creditVal + (adjustments[s.id] || 0) - signedCount;
-      tdRemain.innerHTML = remain <= 1 ? `${remain}<br>【提醒繳費】` : remain;
-      if (remain <= 1) tdRemain.classList.add("warning");
+      const creditVal = credits[s.id] || 0;
+      const adjustVal = adjustments[s.id] || 0;
+      const signedCount = (records[s.id] || [0,0,0,0,0]).filter(v => v === 1).length;
+      const remain = creditVal + adjustVal - signedCount;
+      tdRemain.textContent = remain;
+      // 小於等於1反紅
+      if(remain <= 1) tdRemain.style.color = "red";
+      else tdRemain.style.color = "black";
       tr.appendChild(tdRemain);
 
-      const tdTotal = document.createElement("td");
-      tdTotal.textContent = signedCount;
-      tr.appendChild(tdTotal);
-
-      const tdDel = document.createElement("td");
       if (isAdmin) {
+        // 管理模式補堂調整欄
+        const tdAdj = document.createElement("td");
+        // -1 按鈕
+        const btnMinus = document.createElement("button");
+        btnMinus.classList.add("adjust-btn");
+        btnMinus.textContent = "-1";
+        btnMinus.title = "補堂 -1";
+        btnMinus.addEventListener("click", () => adjustCredit(s.id, -1));
+        tdAdj.appendChild(btnMinus);
+        // +1 按鈕
+        const btnPlus = document.createElement("button");
+        btnPlus.classList.add("adjust-btn");
+        btnPlus.textContent = "+1";
+        btnPlus.title = "補堂 +1";
+        btnPlus.addEventListener("click", () => adjustCredit(s.id, 1));
+        tdAdj.appendChild(btnPlus);
+        tr.appendChild(tdAdj);
+
+        // 刪除按鈕
+        const tdDel = document.createElement("td");
         const delBtn = document.createElement("button");
+        delBtn.classList.add("admin-btn");
         delBtn.textContent = "刪除";
-        delBtn.className = "delete-btn";
-        delBtn.onclick = () => deleteOne(s.id);
+        delBtn.style.padding = "4px 8px";
+        delBtn.addEventListener("click", () => deleteOne(s.id));
         tdDel.appendChild(delBtn);
-        tdDel.style.display = "";
+        tr.appendChild(tdDel);
+
+        delCol.style.display = "";
+        adjCol.style.display = "";
       } else {
-        tdDel.style.display = "none";
+        // 非管理模式補堂調整與刪除欄隱藏並不留空格
+        delCol.style.display = "none";
+        adjCol.style.display = "none";
       }
-      tr.appendChild(tdDel);
 
       tableBody.appendChild(tr);
     }
   }
 
-  async function clearAll() {
-    if (!confirm("確定刪除所有學生及資料？")) return;
-    const stuSnap = await db.collection("students").get();
-    for(const doc of stuSnap.docs) await doc.ref.delete();
-    const credSnap = await db.collection("credits").get();
-    for(const doc of credSnap.docs) await doc.ref.delete();
-    const adjSnap = await db.collection("adjustments").get();
-    for(const doc of adjSnap.docs) await doc.ref.delete();
-    const recSnap = await db.collection("records").get();
-    for(const doc of recSnap.docs) await doc.ref.delete();
+  addStudentBtn.addEventListener("click", addStudent);
+  studentInput.addEventListener("keydown", (e) => { if(e.key === "Enter") addStudent(); });
+
+  clearBtn.addEventListener("click", async () => {
+    if (!confirm("確定要全部刪除學生資料？此動作不可復原")) return;
+    const batch = db.batch();
+    (await db.collection("students").get()).docs.forEach(doc => batch.delete(doc.ref));
+    (await db.collection("credits").get()).docs.forEach(doc => batch.delete(doc.ref));
+    (await db.collection("adjustments").get()).docs.forEach(doc => batch.delete(doc.ref));
+    (await db.collection("records").get()).docs.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
     students = [];
-    records = {};
     credits = {};
     adjustments = {};
-    currentPage = 1;
-    renderTable();
-  }
-
-  function exitAdmin() {
+    records = {};
     isAdmin = false;
     clearBtn.style.display = "none";
     exitBtn.style.display = "none";
     delCol.style.display = "none";
+    adjCol.style.display = "none";
     renderTable();
-  }
+  });
 
-  prevPageBtn.onclick = () => {
-    if(currentPage > 1) {
+  exitBtn.addEventListener("click", () => {
+    isAdmin = false;
+    clearBtn.style.display = "none";
+    exitBtn.style.display = "none";
+    delCol.style.display = "none";
+    adjCol.style.display = "none";
+    renderTable();
+  });
+
+  prevPageBtn.addEventListener("click", () => {
+    if (currentPage > 1) {
       currentPage--;
       renderTable();
     }
-  };
-
-  nextPageBtn.onclick = () => {
-    const totalPage = Math.ceil(students.length / perPage);
-    if(currentPage < totalPage) {
+  });
+  nextPageBtn.addEventListener("click", () => {
+    if (currentPage * perPage < students.length) {
       currentPage++;
       renderTable();
     }
-  };
+  });
 
-  addStudentBtn.onclick = addStudent;
-  clearBtn.onclick = clearAll;
-  exitBtn.onclick = exitAdmin;
-
-  async function init() {
+  async function start() {
     initYearOptions();
     initMonthOptions();
     await loadStudents();
@@ -545,8 +687,7 @@
     renderTable();
   }
 
-  init();
+  start();
 </script>
-
 </body>
 </html>
