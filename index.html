@@ -350,16 +350,18 @@
   const LS_MONTH_KEY = "lastSelectedMonth";
 
   function initYearOptions() {
-    const now = new Date();
-    yearSelect.innerHTML = "";
-    for(let y = now.getFullYear(); y <= now.getFullYear() + 10; y++) {
-      let opt = document.createElement("option");
-      opt.value = y;
-      opt.textContent = `${y}`;
-      yearSelect.appendChild(opt);
-    }
-    yearSelect.value = localStorage.getItem(LS_YEAR_KEY) || now.getFullYear();
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  yearSelect.innerHTML = "";
+  for (let y = currentYear - 1; y <= currentYear + 3; y++) {
+    let opt = document.createElement("option");
+    opt.value = y;
+    opt.textContent = `${y}`;
+    yearSelect.appendChild(opt);
   }
+  yearSelect.value = localStorage.getItem(LS_YEAR_KEY) || currentYear;
+}
+
 
   function initMonthOptions() {
     monthSelect.innerHTML = "";
