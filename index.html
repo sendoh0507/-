@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
@@ -19,66 +19,88 @@
       color: #204060;
       text-shadow: 1px 1px 2px #aaccee;
     }
+    /* 第一排控制列 */
     .top-controls {
-      margin-bottom: 10px;
+      margin-bottom: 6px;
       display: flex;
       flex-wrap: nowrap;
       align-items: center;
       gap: 8px;
       justify-content: flex-start;
+      font-size: 13px;
       color: #204060;
-      font-size: 13px;
-      flex-wrap: nowrap;
-      flex-flow: row nowrap;
-      flex-wrap: nowrap;
-      flex-wrap: nowrap;
-      flex-wrap: nowrap;
-      flex-wrap: nowrap;
-      flex-wrap: nowrap;
-      flex-wrap: nowrap;
-      flex-wrap: nowrap;
-      flex-wrap: nowrap;
-      flex-wrap: nowrap;
     }
-    .top-controls label {
-      white-space: nowrap;
-      user-select: none;
-      margin-right: 2px;
-    }
-    select, input, button {
+    /* 年月選單不含文字標籤 */
+    #year, #month {
       font-size: 13px;
-      margin: 2px;
       padding: 5px 8px;
       border-radius: 12px;
       border: 1.5px solid #204060;
       outline: none;
-      transition: background-color 0.3s ease, color 0.3s ease;
-      font-family: "標楷體", "DFKai-SB", Arial, sans-serif;
       cursor: pointer;
-      user-select: none;
+      width: 65px;
       box-sizing: border-box;
+      user-select: none;
+      background-color: white;
     }
-    select:focus, input:focus, button:focus {
-      border-color: #4080c0;
-      box-shadow: 0 0 5px #80aaff;
+    /* 新增學生輸入欄位 縮小一半寬度 */
+    #studentName {
+      font-size: 13px;
+      padding: 5px 8px;
+      border-radius: 12px;
+      border: 1.5px solid #204060;
+      outline: none;
+      width: 120px;  /* 縮小50% */
+      box-sizing: border-box;
+      user-select: text;
+      flex-shrink: 0;
     }
-    button {
+    /* 新增按鈕 */
+    #addStudentBtn {
+      font-size: 13px;
+      margin: 2px;
+      padding: 5px 8px;
+      border-radius: 12px;
+      border: none;
       background-color: #4090ff;
       color: white;
-      border: none;
+      cursor: pointer;
       user-select: none;
+      flex-shrink: 0;
+      transition: background-color 0.3s ease;
     }
-    button:hover {
+    #addStudentBtn:hover {
       background-color: #3060cc;
     }
+    /* 共計學生，靠右不換行 */
+    #totalCount {
+      margin-left: auto;
+      font-weight: bold;
+      color: #204060;
+      user-select: none;
+      white-space: nowrap;
+    }
+    /* 第二排控制列：隱藏的全部刪除與離開管理模式按鈕放在下一排 */
+    .admin-controls {
+      margin-bottom: 10px;
+      display: flex;
+      gap: 8px;
+      justify-content: flex-start;
+      font-size: 13px;
+      color: #204060;
+    }
+    /* 管理按鈕 */
     .admin-btn {
       background-color: #e85050;
       color: white;
       border: none;
-      padding: 5px 10px;
+      padding: 5px 12px;
       border-radius: 12px;
       user-select: none;
       font-size: 13px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background-color 0.3s ease;
     }
     .admin-btn:hover {
       background-color: #b03030;
@@ -185,30 +207,6 @@
       font-weight: bold;
       white-space: nowrap;
     }
-    #totalCount {
-      font-weight: bold;
-      color: #204060;
-      margin-left: auto;
-      user-select: none;
-    }
-    .pagination {
-      margin-top: 10px;
-      text-align: center;
-    }
-    .pagination button {
-      padding: 5px 12px;
-      margin: 0 6px;
-      font-size: 13px;
-      border-radius: 12px;
-      background-color: #4090ff;
-      color: white;
-      border: none;
-      cursor: pointer;
-      user-select: none;
-    }
-    .pagination button:hover {
-      background-color: #3060cc;
-    }
     /* 剩餘堂數改兩行顯示 */
     .remain-cell {
       white-space: normal !important;
@@ -234,9 +232,12 @@
         flex-wrap: nowrap;
         justify-content: flex-start;
       }
-      select, input, button {
+      #year, #month, #studentName, #addStudentBtn {
         font-size: 12px;
         padding: 5px 7px;
+      }
+      #studentName {
+        width: 100px;
       }
       table {
         font-size: 12px;
@@ -255,6 +256,9 @@
       th, td {
         padding: 5px 1px;
       }
+      .admin-controls {
+        font-size: 12px;
+      }
     }
   </style>
 
@@ -264,16 +268,18 @@
 </head>
 <body>
   <h2>☯️武術課簽到系統🫸🤛</h2>
+  <!-- 第一排：年選單 月選單 新增學生 新增按鈕 共計學生（靠右）-->
   <div class="top-controls">
-    <label for="year">年分：</label>
-    <select id="year"></select>
-    <label for="month">月分：</label>
-    <select id="month"></select>
-    <input type="text" id="studentName" placeholder="新增學生" />
-    <button id="addStudentBtn">新增</button>
-    <button id="clearBtn" class="admin-btn" style="display:none;">全部刪除</button>
-    <button id="exitBtn" class="admin-btn" style="display:none;">離開管理模式</button>
+    <select id="year" aria-label="選擇年份"></select>
+    <select id="month" aria-label="選擇月份"></select>
+    <input type="text" id="studentName" placeholder="新增學生" aria-label="新增學生姓名" />
+    <button id="addStudentBtn" aria-label="新增學生">新增</button>
     <span id="totalCount"></span>
+  </div>
+  <!-- 第二排：隱藏的管理按鈕放此列 -->
+  <div class="admin-controls" style="display:none;">
+    <button id="clearBtn" class="admin-btn">全部刪除</button>
+    <button id="exitBtn" class="admin-btn">離開管理模式</button>
   </div>
   <table>
     <thead>
@@ -326,6 +332,7 @@
   const nextPageBtn = document.getElementById("nextPageBtn");
   const delCol = document.getElementById("delCol");
   const adjCol = document.getElementById("adjCol");
+  const adminControls = document.querySelector(".admin-controls");
 
   let students = [];
   let records = {};
@@ -455,6 +462,7 @@
       isAdmin = true;
       clearBtn.style.display = "inline-block";
       exitBtn.style.display = "inline-block";
+      adminControls.style.display = "flex";
       delCol.style.display = "";
       adjCol.style.display = "";
       studentInput.value = "";
@@ -499,7 +507,6 @@
   }
 
   async function getTotalSigned(studentId) {
-    // 計算全部月份已簽到次數(狀態1)
     let total = 0;
     const snapshot = await db.collection("records").get();
     snapshot.forEach(doc => {
@@ -538,12 +545,6 @@
 
     const pageStudents = students.slice((currentPage-1)*perPage, currentPage*perPage);
 
-    // 預先抓所有學生已簽到數，避免逐行 await
-    const signedCounts = {};
-    await Promise.all(pageStudents.map(async s => {
-      signedCounts[s.id] = await getTotalSigned(s.id);
-    }));
-
     for (const s of pageStudents) {
       const tr = document.createElement("tr");
 
@@ -579,16 +580,15 @@
       tdCredit.appendChild(payBtn);
       tr.appendChild(tdCredit);
 
-      // 剩餘堂數 = 繳費堂數 + 補堂調整 - 已簽到堂數
+      // 剩餘堂數 = 繳費堂數 + 補堂調整 - 已簽到堂數，兩行顯示
       const tdRemain = document.createElement("td");
+      tdRemain.classList.add("remain-cell");
       const creditVal = credits[s.id] || 0;
       const adjustVal = adjustments[s.id] || 0;
       const signedCount = (records[s.id] || [0,0,0,0,0]).filter(v => v === 1).length;
       const remain = creditVal + adjustVal - signedCount;
-      tdRemain.textContent = remain;
-      // 小於等於1反紅
-      if(remain <= 1) tdRemain.style.color = "red";
-      else tdRemain.style.color = "black";
+      tdRemain.innerHTML = `剩餘<br>${remain}`;
+      if(remain <= 1) tdRemain.classList.add("remain-low");
       tr.appendChild(tdRemain);
 
       if (isAdmin) {
@@ -622,10 +622,12 @@
 
         delCol.style.display = "";
         adjCol.style.display = "";
+        adminControls.style.display = "flex";
       } else {
         // 非管理模式補堂調整與刪除欄隱藏並不留空格
         delCol.style.display = "none";
         adjCol.style.display = "none";
+        adminControls.style.display = "none";
       }
 
       tableBody.appendChild(tr);
@@ -650,6 +652,7 @@
     isAdmin = false;
     clearBtn.style.display = "none";
     exitBtn.style.display = "none";
+    adminControls.style.display = "none";
     delCol.style.display = "none";
     adjCol.style.display = "none";
     renderTable();
@@ -659,6 +662,7 @@
     isAdmin = false;
     clearBtn.style.display = "none";
     exitBtn.style.display = "none";
+    adminControls.style.display = "none";
     delCol.style.display = "none";
     adjCol.style.display = "none";
     renderTable();
