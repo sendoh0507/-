@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -125,6 +124,22 @@
     .pagination button:hover {
       background-color: #3060cc;
     }
+    .adjust-btn {
+      background-color: #40906e;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 3px 8px;
+      margin-left: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      user-select: none;
+      font-weight: bold;
+      line-height: 1;
+    }
+    .adjust-btn:hover {
+      background-color: #306048;
+    }
   </style>
 
   <!-- Firebase SDK -->
@@ -153,7 +168,7 @@
         <th id="d3">第三週日<br>-</th>
         <th id="d4">第四週日<br>-</th>
         <th id="d5">第五週日<br>-</th>
-        <th>繳費<br>補堂</th>
+        <th>繳費<br>補堂<br><small>(管理+/-調整)</small></th>
         <th>剩餘<br>堂數</th>
         <th>累積<br>堂數</th>
         <th id="delCol" style="display:none;">刪除</th>
@@ -198,6 +213,7 @@
   let students = [];
   let records = {};
   let credits = {};
+  let adjustments = {}; // 新增：存放補堂調整
   let currentPage = 1;
   const perPage = 50;
   let isAdmin = false;
@@ -254,7 +270,6 @@
     }
   }
 
-  // ✅ 重要：補上 sortOrder
   async function ensureSortOrder() {
     const snapshot = await db.collection("students").get();
     let counter = 1;
@@ -269,7 +284,6 @@
     if (counter > 1) await batch.commit();
   }
 
-  // ✅ 改：依 sortOrder 排序
   async function loadStudents() {
     await ensureSortOrder();
     const snapshot = await db.collection("students").orderBy("sortOrder", "asc").get();
@@ -294,7 +308,15 @@
     });
   }
 
-  // ✅ 改：新增學生時加 sortOrder
+  // 新增：讀取補堂調整資料
+  async function loadAdjustments() {
+    const snapshot = await db.collection("adjustments").get();
+    adjustments = {};
+    snapshot.forEach(doc => {
+      adjustments[doc.id] = doc.data().value || 0;
+    });
+  }
+
   async function addStudent() {
     const name = studentInput.value.trim();
     if (!name) {
@@ -339,6 +361,19 @@
     renderTable();
   }
 
+  // 新增：調整補堂數 +1 或 -1，存在 adjustments 集合
+  async function adjustCredit(studentId, delta) {
+    const oldVal = adjustments[studentId] || 0;
+    const newVal = oldVal + delta;
+    if (newVal < 0) {
+      alert("調整值不能小於0");
+      return;
+    }
+    adjustments[studentId] = newVal;
+    await db.collection("adjustments").doc(studentId).set({value: newVal});
+    renderTable();
+  }
+
   async function getTotalSigned(studentId) {
     let total = 0;
     const snapshot = await db.collection("records").get();
@@ -356,6 +391,7 @@
     await db.collection("students").doc(studentId).delete();
     delete credits[studentId];
     await db.collection("credits").doc(studentId).delete();
+    await db.collection("adjustments").doc(studentId).delete();
     const recSnapshot = await db.collection("records").get();
     for (const doc of recSnapshot.docs) {
       const data = doc.data();
@@ -396,16 +432,39 @@
       }
 
       const tdCredit = document.createElement("td");
+      // 顯示繳費補堂數字
       const creditVal = credits[s.id] || 0;
-      const addBtn = document.createElement("button");
-      addBtn.textContent = "繳費";
-      addBtn.onclick = () => addCredit(s.id);
-      tdCredit.appendChild(addBtn);
+      tdCredit.textContent = creditVal;
+
+      // 管理模式下顯示 +1 -1 調整按鈕
+      if (isAdmin) {
+        const adjVal = adjustments[s.id] || 0;
+        const adjSpan = document.createElement("span");
+        adjSpan.textContent = ` (調整: ${adjVal})`;
+        tdCredit.appendChild(adjSpan);
+
+        const plusBtn = document.createElement("button");
+        plusBtn.textContent = "+1";
+        plusBtn.className = "adjust-btn";
+        plusBtn.onclick = () => adjustCredit(s.id, +1);
+
+        const minusBtn = document.createElement("button");
+        minusBtn.textContent = "-1";
+        minusBtn.className = "adjust-btn";
+        minusBtn.onclick = () => adjustCredit(s.id, -1);
+
+        tdCredit.appendChild(plusBtn);
+        tdCredit.appendChild(minusBtn);
+      } else {
+        // 非管理模式不顯示調整數值和按鈕
+      }
       tr.appendChild(tdCredit);
 
       const tdRemain = document.createElement("td");
       const signedCount = await getTotalSigned(s.id);
-      const remain = creditVal - signedCount;
+
+      // 剩餘堂數 = 繳費補堂 + 調整 - 簽到堂數
+      const remain = creditVal + (adjustments[s.id] || 0) - signedCount;
       tdRemain.innerHTML = remain <= 1 ? `${remain}<br>【提醒繳費】` : remain;
       if (remain <= 1) tdRemain.classList.add("warning");
       tr.appendChild(tdRemain);
@@ -437,11 +496,14 @@
     for(const doc of stuSnap.docs) await doc.ref.delete();
     const credSnap = await db.collection("credits").get();
     for(const doc of credSnap.docs) await doc.ref.delete();
+    const adjSnap = await db.collection("adjustments").get();
+    for(const doc of adjSnap.docs) await doc.ref.delete();
     const recSnap = await db.collection("records").get();
     for(const doc of recSnap.docs) await doc.ref.delete();
     students = [];
     records = {};
     credits = {};
+    adjustments = {};
     currentPage = 1;
     renderTable();
   }
@@ -478,6 +540,7 @@
     initMonthOptions();
     await loadStudents();
     await loadCredits();
+    await loadAdjustments();
     await loadRecords();
     renderTable();
   }
