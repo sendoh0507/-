@@ -232,18 +232,54 @@
   }
 
   /* 手機版調整 */
-  @media (max-width: 600px) {
-    body { padding: 6px; max-width: 100%; }
-    h2 { font-size: 22px; }
-    .top-controls { font-size: 12px; gap: 6px; flex-wrap: nowrap; justify-content: flex-start; }
-    #year, #month, #studentName, #addStudentBtn { font-size: 12px; padding: 5px 7px; }
-    #studentName { width: 100px; }
-    table { font-size: 12px; }
-    .sign-btn { width: 34px; height: 26px; font-size: 11px; padding: 0; }
-    .adjust-btn, .pay-btn { padding: 3px 6px; font-size: 12px; margin-left: 2px; }
-    th, td { padding: 5px 1px; }
-    .admin-controls { font-size: 12px; }
+ @media (max-width: 600px) {
+  body {
+    padding: 6px;
+    max-width: 100%;
   }
+  h2 {
+    font-size: 22px;
+  }
+  .top-controls {
+    font-size: 12px;
+    gap: 6px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+  }
+  #year, #month, #studentName, #addStudentBtn {
+    font-size: 12px;
+    padding: 5px 7px;
+  }
+  #studentName {
+    width: 100px;
+  }
+  table {
+    font-size: 12px;
+  }
+  .sign-btn {
+    width: 34px;
+    height: 26px;
+    font-size: 11px;
+    padding: 0;
+  }
+  .adjust-btn, .pay-btn {
+    padding: 3px 6px;
+    font-size: 12px;
+    margin-left: 2px;
+  }
+  th, td {
+    padding: 5px 1px;
+  }
+  .admin-controls {
+    font-size: 12px;
+  }
+  /* 教練選單針對手機縮小字體 */
+  thead select {
+    font-size: 11px;        /* 調小字體 */
+    padding: 4px 6px;       /* 減少 padding 避免字被切掉 */
+  }
+}
+
 </style>
 
   <!-- Firebase SDK -->
