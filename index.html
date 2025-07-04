@@ -287,6 +287,26 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
+<div id="securityModal" style="
+  position: fixed; z-index: 9999; top:0; left:0; width:100%; height:100%;
+  background: linear-gradient(135deg, #f0f8ff, #d0e8ff); display:flex;
+  flex-direction: column; justify-content: center; align-items: center;
+  font-family:'標楷體', 'DFKai-SB', Arial, sans-serif; text-align:center;">
+  <h1 style="font-size:28px; color:#204060; margin-bottom:20px;">🔒 安全助手：一天登入只要驗證一次</h1>
+  <p style="font-size:20px; color:#204060; margin-bottom:20px;">請輸入安全碼</p>
+  <input type="text" id="securityInput" placeholder="輸入安全碼..." style="
+    font-size:24px; padding:10px 20px; border-radius:12px; border:2px solid #204060;
+    outline:none; text-align:center; width:80%; max-width:300px;"/>
+  <button onclick="checkSecurityCode()" style="
+    margin-top:20px; padding:10px 30px; font-size:20px; font-weight:bold;
+    border:none; border-radius:12px; background-color:#4090ff; color:white; cursor:pointer;">
+    驗證
+  </button>
+  <p id="securityError" style="color:red; font-weight:bold; margin-top:20px; display:none;">
+    安全碼錯誤，請重試！
+  </p>
+</div>
+
   <h2>☯️武術課簽到系統🫸🤛</h2>
   <!-- 第一排：年選單 月選單 新增學生 新增按鈕 共計學生（靠右）-->
   <div class="top-controls">
@@ -782,6 +802,32 @@ function updateCoachStats() {
   document.getElementById("ziGenCount").innerHTML = `子亘<br>${ziGen}`;
   document.getElementById("xinHangCount").innerHTML = `心航<br>${xinHang}`;
 }
+function checkSecurityCode() {
+  const input = document.getElementById("securityInput").value.trim();
+  const now = new Date();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const correctCode = `文開${mm}${dd}`;
+
+  if (input === correctCode) {
+    document.getElementById("securityModal").style.display = "none";
+    localStorage.setItem("verifiedDate", `${now.getFullYear()}-${mm}-${dd}`);
+  } else {
+    document.getElementById("securityError").style.display = "block";
+  }
+}
+
+window.addEventListener("load", () => {
+  const now = new Date();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const todayKey = `${now.getFullYear()}-${mm}-${dd}`;
+  const lastVerified = localStorage.getItem("verifiedDate");
+
+  if (lastVerified === todayKey) {
+    document.getElementById("securityModal").style.display = "none";
+  }
+});
 
 
 </script>
