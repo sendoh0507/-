@@ -283,8 +283,13 @@
 </style>
 
   <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+ <!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+
+
+
 </head>
 <body>
 <div id="securityModal" style="
@@ -385,6 +390,16 @@
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
+
+firebase.auth().signInAnonymously()
+  .then(() => {
+    console.log("匿名登入成功");
+    start();  // 匿名登入成功後，再啟動你的程式
+  })
+  .catch((error) => {
+    console.error("匿名登入失敗", error);
+    alert("匿名登入失敗，請稍後再試");
+  });
 
   const yearSelect = document.getElementById("year");
   const monthSelect = document.getElementById("month");
